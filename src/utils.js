@@ -9,10 +9,12 @@ export const STORAGE_KEYS = {
   prediction: "prediction_result",
 };
 
+const baseUrl = import.meta.env.BASE_URL || "./";
+
 export const REPO_SAMPLE_PATHS = {
-  news: "./news_full_mcq3_type9_entities_novectors.jsonl",
-  market: "./market_data/2025-06-22_2025-06-28/market_data_all.csv",
-  fetchReport: "./market_data/2025-06-22_2025-06-28/fetch_report.json",
+  news: `${baseUrl}news_full_mcq3_type9_entities_novectors.jsonl`,
+  market: `${baseUrl}market_data/2025-06-22_2025-06-28/market_data_all.csv`,
+  fetchReport: `${baseUrl}market_data/2025-06-22_2025-06-28/fetch_report.json`,
 };
 
 export const DEFAULT_SENTIMENT_SCHEMA = {

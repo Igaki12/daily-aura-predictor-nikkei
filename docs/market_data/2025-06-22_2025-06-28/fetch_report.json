@@ -1,0 +1,18 @@
+{
+  "tickers": [
+    "^N225",
+    "1306.T"
+  ],
+  "requested_dates": [
+    "2025-06-23",
+    "2025-06-24",
+    "2025-06-25",
+    "2025-06-26",
+    "2025-06-27",
+    "2025-06-30"
+  ],
+  "history_fetch_start": "2025-06-16",
+  "history_fetch_end": "2025-07-07",
+  "all_row_count": 32,
+  "requested_row_count": 12
+}

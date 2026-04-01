@@ -447,11 +447,7 @@ h2 {
     padding-right: 22px;
   }
 
-  .pipeline {
-    padding: 0 14px 36px;
-  }
-
   .phase-card {
-    max-width: 100%;
+    max-width: 100dvw;
   }
 }

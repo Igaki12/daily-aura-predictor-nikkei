@@ -26,6 +26,7 @@ import {
 } from "./utils";
 
 function App() {
+  const heroImageUrl = new URL(`${import.meta.env.BASE_URL}image-stock.jpg`, window.location.href).href;
   const [apiKey, setApiKey] = useState(localStorage.getItem(STORAGE_KEYS.apiKey) || "");
   const [pipeline, setPipeline] = useState(loadJson(STORAGE_KEYS.pipeline, {}));
   const [newsRecords, setNewsRecords] = useState([]);
@@ -45,7 +46,7 @@ function App() {
     api: { kind: "neutral", text: "未設定", detail: "Gemini API Key は未保存です。" },
     news: { kind: "neutral", text: "未読込", detail: "ニュースデータを読み込むと概要が表示されます。" },
     sentiment: { kind: "neutral", text: "未生成", detail: "対象日のニュースを選ぶと、ここに入力概要と保存状態が出ます。" },
-    entity: { kind: "neutral", text: "未設定", detail: "ニュースから派生したエンティティ概要や手動投入結果を表示します。" },
+    entity: { kind: "neutral", text: "未設定", detail: "ニュースから派生した注目キーワード概要や手動投入結果を表示します。" },
     market: { kind: "neutral", text: "未読込", detail: "市場データを読むとティッカー一覧と日付範囲を表示します。" },
     similarity: { kind: "neutral", text: "未計算", detail: "対象日・対象ティッカーを選び、類似日計算を実行してください。" },
     output: { kind: "neutral", text: "未出力" }
@@ -184,7 +185,7 @@ function App() {
         entity: {
           kind: "neutral",
           text: "未設定",
-          detail: "ニュースから派生したエンティティ概要や手動投入結果を表示します。"
+          detail: "ニュースから派生した注目キーワード概要や手動投入結果を表示します。"
         }
       }));
       return;
@@ -204,7 +205,7 @@ function App() {
         detail:
           `対象日: ${selectedDate}\n` +
           `ニュース件数: ${records.length}\n` +
-          `ユニークエンティティ数: ${aggregate.uniqueEntityCount}\n` +
+          `ユニークキーワード数: ${aggregate.uniqueEntityCount}\n` +
           `平均本文長: ${aggregate.averageContentLength.toFixed(1)}\n` +
           `保存済みセンチメント: ${hasSentiment ? "あり" : "なし"}`
       },
@@ -213,7 +214,7 @@ function App() {
         text: hasEntity ? "保存済み" : derived.named_entities.length ? "派生可能" : "未設定",
         detail:
           `対象日: ${selectedDate}\n` +
-          `ニュース由来ユニークエンティティ数: ${derived.named_entities.length}\n` +
+          `ニュース由来ユニークキーワード数: ${derived.named_entities.length}\n` +
           `保存済み: ${hasEntity ? "あり" : "なし"}\n` +
           `先頭例: ${(entities[selectedDate]?.named_entities || derived.named_entities).slice(0, 12).join(", ") || "-"}`
       }
@@ -417,7 +418,7 @@ function App() {
     } catch (error) {
       setStatus((current) => ({
         ...current,
-        entity: { kind: "error", text: "エラー", detail: `エンティティ読込に失敗しました: ${error.message}` }
+        entity: { kind: "error", text: "エラー", detail: `注目キーワード読込に失敗しました: ${error.message}` }
       }));
     }
   }
@@ -553,7 +554,7 @@ function App() {
     } catch (error) {
       setStatus((current) => ({
         ...current,
-        entity: { kind: "error", text: "エラー", detail: `エンティティ JSON の保存に失敗しました: ${error.message}` }
+        entity: { kind: "error", text: "エラー", detail: `注目キーワード JSON の保存に失敗しました: ${error.message}` }
       }));
     }
   }
@@ -647,7 +648,7 @@ function App() {
       predictionDirection,
       rationale:
         `${targetDate} の ${selectedTicker} は ${bestCandidate.date} が最類似日でした。` +
-        ` エンティティ重なりは ${overlap.slice(0, 6).join(" / ") || "限定的"}。` +
+        ` 注目キーワードの重なりは ${overlap.slice(0, 6).join(" / ") || "限定的"}。` +
         ` 総合スコアは ${bestCandidate.totalScore.toFixed(3)}。` +
         (nextTradeRow
           ? ` 類似日の翌営業日 ${nextTradeRow.trade_date} の実績 day_change_pct は ${formatPercent(Number(nextTradeRow.day_change_pct) / 100)} でした。`
@@ -660,11 +661,11 @@ function App() {
     <div id="app">
       <header
         className="hero"
-        style={{ "--hero-image": `url(${import.meta.env.BASE_URL}image-stock.jpg)` }}
+        style={{ "--hero-image": `url(${heroImageUrl})` }}
       >
         <div className="hero-copy">
           <p className="eyebrow">daily-aura-predictor-nikkei</p>
-          <h1>ニュース・エンティティ・市場データから翌営業日を推定する MVP</h1>
+          <h1>ニュース要因と市場データから翌営業日の相場傾向を読む</h1>
           <p className="hero-text">
             React + Vite で構成した GitHub Pages 向けフロントエンドです。Gemini API キーはブラウザの
             <code> localStorage </code>
@@ -763,11 +764,11 @@ function App() {
           <pre className="detail-box">{status.sentiment.detail}</pre>
         </PhaseCard>
 
-        <PhaseCard number="Phase 4" title="エンティティ抽出結果入力 / 読み込み" badge={status.entity}>
-          <p className="phase-text">Gemma 3 の出力を手動投入できます。ニュース JSONL から日付ごとのエンティティ集合を派生させることもできます。</p>
+        <PhaseCard number="Phase 4" title="注目キーワード入力 / 読み込み" badge={status.entity}>
+          <p className="phase-text">Gemma 3 の出力を手動投入できます。ニュース JSONL から日付ごとの注目キーワード集合を派生させることもできます。</p>
           <div className="field-grid">
             <label className="field">
-              <span>エンティティ JSON / JSONL ファイル</span>
+              <span>注目キーワード JSON / JSONL ファイル</span>
               <input type="file" accept=".json,.jsonl" onChange={(event) => readFile(event.target.files?.[0], loadEntityText)} />
             </label>
             <label className="field">
@@ -778,7 +779,7 @@ function App() {
             </label>
           </div>
           <label className="field">
-            <span>エンティティ JSON 手動貼り付け</span>
+            <span>注目キーワード JSON 手動貼り付け</span>
             <textarea rows="8" value={entityTextarea} onChange={(event) => setEntityTextarea(event.target.value)} />
           </label>
           <div className="inline-actions">
@@ -842,14 +843,14 @@ function App() {
         </PhaseCard>
 
         <PhaseCard number="Phase 6" title="類似日計算" badge={status.similarity}>
-          <p className="phase-text">エンティティ集合、ニュース集約特徴量、市場特徴量、保存済みセンチメントがあればその特徴量も使って簡易スコアを出します。</p>
+          <p className="phase-text">注目キーワード集合、ニュース集約特徴量、市場特徴量、保存済みセンチメントがあればその特徴量も使って簡易スコアを出します。</p>
           <div className="field-grid">
             <label className="field">
               <span>重み: センチメント</span>
               <input type="number" step="0.1" value={weights.sentiment} onChange={(event) => setWeights((current) => ({ ...current, sentiment: Number(event.target.value) }))} />
             </label>
             <label className="field">
-              <span>重み: エンティティ</span>
+              <span>重み: 注目キーワード</span>
               <input type="number" step="0.1" value={weights.entity} onChange={(event) => setWeights((current) => ({ ...current, entity: Number(event.target.value) }))} />
             </label>
             <label className="field">
@@ -888,7 +889,7 @@ function App() {
                     {" / "}
                     センチメント {candidate.sentimentScore.toFixed(3)}
                     {" / "}
-                    エンティティ {candidate.entityScore.toFixed(3)}
+                    注目キーワード {candidate.entityScore.toFixed(3)}
                     {" / "}
                     市場 {candidate.marketScore.toFixed(3)}
                   </li>

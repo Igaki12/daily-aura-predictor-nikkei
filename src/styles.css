@@ -30,10 +30,9 @@ body {
   font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
   color: var(--ink);
   background:
-    linear-gradient(180deg, #06090f 0, #0e1319 340px, transparent 340px),
-    radial-gradient(circle at top right, rgba(211, 119, 61, 0.2), transparent 28%),
-    radial-gradient(circle at top left, rgba(80, 130, 101, 0.12), transparent 24%),
-    linear-gradient(180deg, #efe5d6, #f7f2eb 33%, #f5efe5 100%);
+    radial-gradient(circle at top right, rgba(201, 112, 55, 0.12), transparent 24%),
+    radial-gradient(circle at top left, rgba(77, 116, 96, 0.1), transparent 20%),
+    linear-gradient(180deg, #06090f 0%, #0b1017 38%, #10161d 100%);
 }
 
 code,
@@ -234,6 +233,10 @@ h2 {
   gap: 18px;
 }
 
+.phase-card {
+  width: 100%;
+}
+
 .phase-head {
   display: flex;
   align-items: flex-start;
@@ -425,17 +428,30 @@ h2 {
 
 @media (max-width: 899px) {
   body {
-    padding-top: 0;
+    padding: 0;
+  }
+
+  #app {
+    width: 100%;
   }
 
   .hero {
     border-radius: 0 0 26px 26px;
     margin-top: 0;
+    margin-bottom: 18px;
   }
 
   .hero-copy,
   .hero-panel {
     padding-left: 22px;
     padding-right: 22px;
+  }
+
+  .pipeline {
+    padding: 0 14px 36px;
+  }
+
+  .phase-card {
+    max-width: 100%;
   }
 }

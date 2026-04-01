@@ -658,7 +658,10 @@ function App() {
 
   return (
     <div id="app">
-      <header className="hero">
+      <header
+        className="hero"
+        style={{ "--hero-image": `url(${import.meta.env.BASE_URL}image-stock.jpg)` }}
+      >
         <div className="hero-copy">
           <p className="eyebrow">daily-aura-predictor-nikkei</p>
           <h1>ニュース・エンティティ・市場データから翌営業日を推定する MVP</h1>

@@ -223,19 +223,20 @@ export function normalizeNewsRecord(record) {
 }
 
 export function buildNewsAggregate(records) {
-  const contentLengths = records.map((record) => (record.content || "").length);
-  const entityCount = records.reduce(
+  const safeRecords = Array.isArray(records) ? records : [];
+  const contentLengths = safeRecords.map((record) => (record.content || "").length);
+  const entityCount = safeRecords.reduce(
     (count, record) => count + ensureArray(record.named_entities).length,
     0
   );
   return {
-    articleCount: records.length,
+    articleCount: safeRecords.length,
     uniqueEntityCount: new Set(
-      records.flatMap((record) => ensureArray(record.named_entities))
+      safeRecords.flatMap((record) => ensureArray(record.named_entities))
     ).size,
     averageContentLength: average(contentLengths),
-    averageEntitiesPerArticle: records.length ? entityCount / records.length : 0,
-    questionCount: records.reduce(
+    averageEntitiesPerArticle: safeRecords.length ? entityCount / safeRecords.length : 0,
+    questionCount: safeRecords.reduce(
       (count, record) => count + ensureArray(record.questions).length,
       0
     )
@@ -323,6 +324,10 @@ export function buildSentimentPrompt(dateId, records) {
     `対象 date_id: ${dateId}`,
     `対象 trade_date: ${formatDateId(dateId)}`,
     "overall_bias と dimensions は -1.0 から 1.0、confidence は 0.0 から 1.0 の範囲で返してください。",
+    "文字列の値は日本語で返してください。",
+    "market_regime の値も日本語で、例えば リスクオン / リスクオフ / まちまち / イベント主導 のように返してください。",
+    "dominant_themes、bullish_sectors、bearish_sectors、short_rationale は必ず日本語で返してください。",
+    "short_rationale は日本語で簡潔に 1 文から 3 文で返してください。",
     JSON.stringify(articles, null, 2)
   ].join("\n");
 }

@@ -581,8 +581,8 @@ function App() {
         const sentimentScore = targetSentiment && candidateSentiment
           ? cosineSimilarity(sentimentToVector(targetSentiment), sentimentToVector(candidateSentiment))
           : cosineSimilarity(
-              Object.values(buildNewsAggregate(newsByDate[compactDateId(targetDate)] || {})),
-              Object.values(buildNewsAggregate(newsByDate[compactDateId(date)] || {}))
+              Object.values(buildNewsAggregate(newsByDate[compactDateId(targetDate)] || [])),
+              Object.values(buildNewsAggregate(newsByDate[compactDateId(date)] || []))
             );
 
         const targetEntities = entities[compactDateId(targetDate)]?.named_entities
@@ -879,7 +879,15 @@ function App() {
               <ul className="candidate-list">
                 {prediction.candidates.map((candidate) => (
                   <li key={candidate.date}>
-                    <strong>{candidate.date}</strong> score {candidate.totalScore.toFixed(3)} / sent {candidate.sentimentScore.toFixed(3)} / ent {candidate.entityScore.toFixed(3)} / mkt {candidate.marketScore.toFixed(3)}
+                    <strong>{candidate.date}</strong>
+                    {" "}
+                    総合 {candidate.totalScore.toFixed(3)}
+                    {" / "}
+                    センチメント {candidate.sentimentScore.toFixed(3)}
+                    {" / "}
+                    エンティティ {candidate.entityScore.toFixed(3)}
+                    {" / "}
+                    市場 {candidate.marketScore.toFixed(3)}
                   </li>
                 ))}
               </ul>

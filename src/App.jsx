@@ -734,7 +734,10 @@ function App() {
         </PhaseCard>
 
         <PhaseCard number="Phase 3" title="日次センチメント表現生成" badge={status.sentiment}>
-          <p className="phase-text">Gemini 3 Flash 系へニュース群を送り、日次センチメント表現を structured output で取得します。</p>
+          <p className="phase-text">
+            ニュース群をまとめて解析し、数値だけの単純なセンチメントスコアではなく、市場の雰囲気や材料の関係性を文章と構造化データで表した「日次センチメント表現」として取得します。
+            LLM やベクトル分析で後段利用しやすいよう、意味のまとまりを保った表現として扱うことを重視しています。
+          </p>
           <div className="field-grid">
             <label className="field">
               <span>対象日</span>

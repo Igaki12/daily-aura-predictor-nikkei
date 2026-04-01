@@ -30,6 +30,7 @@ body {
   font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
   color: var(--ink);
   background:
+    linear-gradient(180deg, #06090f 0, #0e1319 340px, transparent 340px),
     radial-gradient(circle at top right, rgba(211, 119, 61, 0.2), transparent 28%),
     radial-gradient(circle at top left, rgba(80, 130, 101, 0.12), transparent 24%),
     linear-gradient(180deg, #efe5d6, #f7f2eb 33%, #f5efe5 100%);
@@ -54,12 +55,12 @@ select {
   grid-template-columns: 1fr;
   gap: 0;
   margin-bottom: 24px;
-  overflow: hidden;
-  border-radius: calc(var(--radius) + 6px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 28px 60px rgba(7, 8, 11, 0.36);
+  width: 100%;
+  overflow: clip;
+  border-radius: 0 0 30px 30px;
+  box-shadow: 0 24px 46px rgba(7, 8, 11, 0.18);
   background:
-    linear-gradient(135deg, rgba(5, 8, 14, 0.92), rgba(10, 12, 18, 0.76)),
+    linear-gradient(180deg, rgba(5, 8, 14, 0.96), rgba(10, 12, 18, 0.84)),
     radial-gradient(circle at top left, rgba(255, 255, 255, 0.1), transparent 26%),
     radial-gradient(circle at bottom right, rgba(163, 66, 36, 0.28), transparent 30%),
     var(--hero-image) center center / cover no-repeat;
@@ -70,8 +71,7 @@ select {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.08), transparent 24%, transparent 76%, rgba(255, 255, 255, 0.05)),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 18%, transparent 82%, rgba(255, 255, 255, 0.05));
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 22%, transparent 80%, rgba(255, 255, 255, 0.04));
   pointer-events: none;
 }
 
@@ -94,7 +94,8 @@ select {
   position: relative;
   z-index: 1;
   min-width: 0;
-  padding: 28px;
+  width: 100%;
+  padding: 30px 28px;
   background: transparent;
   border: 0;
   border-radius: 0;
@@ -104,11 +105,11 @@ select {
 }
 
 .hero-copy {
-  background: linear-gradient(90deg, rgba(6, 8, 13, 0.18), rgba(6, 8, 13, 0));
+  background: linear-gradient(180deg, rgba(6, 8, 13, 0.12), rgba(6, 8, 13, 0));
 }
 
 .hero-panel {
-  background: linear-gradient(270deg, rgba(6, 8, 13, 0.22), rgba(6, 8, 13, 0.04));
+  background: linear-gradient(180deg, rgba(6, 8, 13, 0.18), rgba(6, 8, 13, 0.04));
 }
 
 .eyebrow,
@@ -420,14 +421,21 @@ h2 {
     grid-template-columns: 1.35fr 0.9fr;
     align-items: stretch;
   }
-
-  .hero-copy {
-    border-right: 1px solid rgba(255, 255, 255, 0.12);
-  }
 }
 
 @media (max-width: 899px) {
+  body {
+    padding-top: 0;
+  }
+
+  .hero {
+    border-radius: 0 0 26px 26px;
+    margin-top: 0;
+  }
+
+  .hero-copy,
   .hero-panel {
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    padding-left: 22px;
+    padding-right: 22px;
   }
 }

@@ -56,10 +56,10 @@ select {
   margin-bottom: 24px;
   width: 100%;
   overflow: clip;
-  border-radius: 0 0 30px 30px;
+  border-radius: 30px;
   box-shadow: 0 24px 46px rgba(7, 8, 11, 0.18);
   background:
-    linear-gradient(180deg, rgba(5, 8, 14, 0.96), rgba(10, 12, 18, 0.84)),
+    linear-gradient(180deg, rgba(5, 8, 14, 0.56), rgba(10, 12, 18, 0.34)),
     radial-gradient(circle at top left, rgba(255, 255, 255, 0.1), transparent 26%),
     radial-gradient(circle at bottom right, rgba(163, 66, 36, 0.28), transparent 30%),
     var(--hero-image) center center / cover no-repeat;

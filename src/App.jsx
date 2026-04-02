@@ -25,8 +25,14 @@ import {
   jaccardSimilarity
 } from "./utils";
 
+const MARKET_LOOKBACK_DAYS = 5;
+
 function App() {
   const heroImageUrl = new URL(`${import.meta.env.BASE_URL}image-stock.jpg`, window.location.href).href;
+  const architecturePdfUrl = new URL(
+    `${import.meta.env.BASE_URL}Glass_Box_Quant_Nikkei_Architecture(1).pdf`,
+    window.location.href
+  ).href;
   const [apiKey, setApiKey] = useState(localStorage.getItem(STORAGE_KEYS.apiKey) || "");
   const [pipeline, setPipeline] = useState(loadJson(STORAGE_KEYS.pipeline, {}));
   const [newsRecords, setNewsRecords] = useState([]);
@@ -52,6 +58,7 @@ function App() {
     output: { kind: "neutral", text: "未出力" }
   });
   const dialogRef = useRef(null);
+  const pdfDialogRef = useRef(null);
 
   useEffect(() => {
     const rawNews = localStorage.getItem(STORAGE_KEYS.newsRaw);
@@ -570,9 +577,10 @@ function App() {
     }
 
     const normalizedWeights = normalizeWeights(weights);
-    const candidateDates = [...new Set((marketData.rows || [])
+    const tickerRows = (marketData.rows || [])
       .filter((row) => row.ticker === selectedTicker)
-      .map((row) => row.trade_date))]
+      .sort((a, b) => a.trade_date.localeCompare(b.trade_date));
+    const candidateDates = [...new Set(tickerRows.map((row) => row.trade_date))]
       .filter((date) => date !== targetDate);
 
     const scores = candidateDates
@@ -592,10 +600,8 @@ function App() {
           || deriveEntitiesFromNews(newsByDate, compactDateId(date)).named_entities;
         const entityScore = jaccardSimilarity(new Set(targetEntities), new Set(candidateEntities));
 
-        const targetRow = (marketData.rows || []).find((row) => row.ticker === selectedTicker && row.trade_date === targetDate);
-        const candidateRow = (marketData.rows || []).find((row) => row.ticker === selectedTicker && row.trade_date === date);
-        const targetVector = buildMarketVector(targetRow);
-        const candidateVector = buildMarketVector(candidateRow);
+        const targetVector = buildMarketSequenceVector(tickerRows, targetDate, date, MARKET_LOOKBACK_DAYS);
+        const candidateVector = buildMarketSequenceVector(tickerRows, date, targetDate, MARKET_LOOKBACK_DAYS);
         const marketScore = cosineSimilarity(targetVector, candidateVector);
 
         return {
@@ -620,9 +626,7 @@ function App() {
     }
 
     const bestCandidate = scores[0];
-    const dates = [...new Set((marketData.rows || [])
-      .filter((row) => row.ticker === selectedTicker)
-      .map((row) => row.trade_date))].sort();
+    const dates = [...new Set(tickerRows.map((row) => row.trade_date))].sort();
     const index = dates.indexOf(bestCandidate.date);
     const nextTradeDate = index >= 0 ? dates[index + 1] || null : null;
     const nextTradeRow = (marketData.rows || []).find(
@@ -674,6 +678,9 @@ function App() {
           <div className="hero-actions">
             <button className="button primary" onClick={() => dialogRef.current?.showModal()}>
               Gemini API Key を設定
+            </button>
+            <button className="button ghost" onClick={() => pdfDialogRef.current?.showModal()}>
+              このアプリの概要
             </button>
             <button className="button ghost" onClick={clearStoredKeys}>
               保存状態をリセット
@@ -907,7 +914,9 @@ function App() {
         <form method="dialog" className="modal-card">
           <div className="modal-head">
             <h2>Gemini API Key</h2>
-            <button className="button ghost">閉じる</button>
+            <button className="icon-button modal-close-button" aria-label="閉じる">
+              <span aria-hidden="true">×</span>
+            </button>
           </div>
           <p className="modal-text">
             このキーはブラウザの <code>localStorage</code> に保存されます。ローカル検証・限定公開デモ専用であり、本番では非推奨です。
@@ -925,24 +934,74 @@ function App() {
           </div>
         </form>
       </dialog>
+
+      <dialog ref={pdfDialogRef} className="modal modal-pdf">
+        <div className="modal-card modal-card-pdf">
+          <div className="modal-head">
+            <h2>このアプリの概要</h2>
+            <form method="dialog">
+              <button className="icon-button modal-close-button" aria-label="閉じる">
+                <span aria-hidden="true">×</span>
+              </button>
+            </form>
+          </div>
+          <p className="modal-text">
+            <code>Glass_Box_Quant_Nikkei_Architecture.pdf</code> をブラウザ内で表示しています。
+          </p>
+          <div className="pdf-viewer-frame">
+            <iframe
+              className="pdf-viewer"
+              src={architecturePdfUrl}
+              title="Glass Box Quant Nikkei Architecture"
+            />
+          </div>
+          <div className="modal-footer-actions">
+            <a className="button external-link-button" href={architecturePdfUrl} target="_blank" rel="noreferrer">
+              <span className="button-icon" aria-hidden="true">↗</span>
+              別タブで開く
+            </a>
+          </div>
+        </div>
+      </dialog>
     </div>
   );
 }
 
-function buildMarketVector(row) {
-  if (!row) {
-    return [0, 0, 0, 0, 0];
+function buildMarketSequenceVector(rows, anchorDate, comparisonDate, maxLookbackDays) {
+  const anchorIndex = rows.findIndex((row) => row.trade_date === anchorDate);
+  const comparisonIndex = rows.findIndex((row) => row.trade_date === comparisonDate);
+  if (anchorIndex === -1 || comparisonIndex === -1) {
+    return [];
   }
-  const open = Number(row.open) || 0;
-  const high = Number(row.high) || 0;
-  const low = Number(row.low) || 0;
-  return [
-    Number(row.day_change_pct) || 0,
-    Number(row.prev_close_change_pct) || 0,
-    open ? (high - low) / open : 0,
-    Number(row.volume) || 0,
-    Number(row.close) || 0
-  ];
+
+  const effectiveLookback = Math.max(
+    1,
+    Math.min(anchorIndex + 1, comparisonIndex + 1, maxLookbackDays)
+  );
+  const windowRows = rows.slice(anchorIndex - effectiveLookback + 1, anchorIndex + 1);
+
+  return windowRows.flatMap((row, index) => {
+    const open = Number(row.open) || 0;
+    const high = Number(row.high) || 0;
+    const low = Number(row.low) || 0;
+    const close = Number(row.close) || 0;
+    const volume = Number(row.volume) || 0;
+    const previousRow = index > 0
+      ? windowRows[index - 1]
+      : rows[rows.findIndex((candidate) => candidate.trade_date === row.trade_date) - 1];
+    const previousVolume = Number(previousRow?.volume) || 0;
+    const volumeDelta = previousVolume > 0 && volume > 0
+      ? Math.log(volume / previousVolume)
+      : 0;
+
+    return [
+      Number(row.day_change_pct) || 0,
+      Number(row.prev_close_change_pct) || 0,
+      open ? ((high - low) / open) * 100 : 0,
+      open ? ((close - open) / open) * 100 : 0,
+      volumeDelta
+    ];
+  });
 }
 
 function PhaseCard({ number, title, badge, children }) {

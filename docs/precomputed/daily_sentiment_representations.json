@@ -1,0 +1,162 @@
+{
+  "20250623": {
+    "trade_date": "2025-06-23",
+    "market_regime": "リスクオフ寄り",
+    "overall_bias": -0.38,
+    "confidence": 0.74,
+    "dimensions": {
+      "macro_tightening_pressure": 0.58,
+      "domestic_policy_uncertainty": 0.16,
+      "exporter_tailwind": -0.18,
+      "semiconductor_momentum": -0.21,
+      "consumer_strength": -0.06,
+      "inflation_concern": 0.54,
+      "yen_appreciation_pressure": 0.31,
+      "energy_supply_risk": 0.72,
+      "ai_theme_strength": 0.04,
+      "financial_sector_support": 0.08
+    },
+    "dominant_themes": [
+      "中東情勢",
+      "原油上昇",
+      "地震観測"
+    ],
+    "bullish_sectors": [
+      "エネルギー",
+      "内需ディフェンシブ"
+    ],
+    "bearish_sectors": [
+      "輸出関連",
+      "半導体"
+    ],
+    "short_rationale": "中東情勢の緊張と原油上昇がリスク回避を促し、同時に地震関連ニュースが多く市場心理を重くした。輸出関連とハイテクはやや逆風で、内需ディフェンシブへの逃避が見えやすい。"
+  },
+  "20250624": {
+    "trade_date": "2025-06-24",
+    "market_regime": "イベント主導の弱気",
+    "overall_bias": -0.31,
+    "confidence": 0.77,
+    "dimensions": {
+      "macro_tightening_pressure": 0.62,
+      "domestic_policy_uncertainty": 0.18,
+      "exporter_tailwind": -0.24,
+      "semiconductor_momentum": -0.19,
+      "consumer_strength": -0.08,
+      "inflation_concern": 0.49,
+      "yen_appreciation_pressure": 0.28,
+      "energy_supply_risk": 0.68,
+      "ai_theme_strength": 0.03,
+      "financial_sector_support": 0.16
+    },
+    "dominant_themes": [
+      "中東報復応酬",
+      "為替警戒",
+      "金融セクター再評価"
+    ],
+    "bullish_sectors": [
+      "銀行",
+      "内需ディフェンシブ"
+    ],
+    "bearish_sectors": [
+      "輸出関連",
+      "半導体"
+    ],
+    "short_rationale": "米軍基地への報復攻撃や為替関連ニュースが重なり、外部イベント主導の警戒感が続いた。一方で金融セクターには資本政策の明るさもあり、全面安ではなく選別色の強い地合いとみなせる。"
+  },
+  "20250625": {
+    "trade_date": "2025-06-25",
+    "market_regime": "慎重なもみ合い",
+    "overall_bias": -0.12,
+    "confidence": 0.72,
+    "dimensions": {
+      "macro_tightening_pressure": 0.45,
+      "domestic_policy_uncertainty": 0.24,
+      "exporter_tailwind": -0.11,
+      "semiconductor_momentum": -0.08,
+      "consumer_strength": 0.02,
+      "inflation_concern": 0.38,
+      "yen_appreciation_pressure": 0.22,
+      "energy_supply_risk": 0.33,
+      "ai_theme_strength": 0.06,
+      "financial_sector_support": 0.09
+    },
+    "dominant_themes": [
+      "為替推移",
+      "関税影響",
+      "地震関連継続"
+    ],
+    "bullish_sectors": [
+      "通信",
+      "内需ディフェンシブ"
+    ],
+    "bearish_sectors": [
+      "輸出関連",
+      "景気敏感"
+    ],
+    "short_rationale": "ドル円や関税影響への言及が続き、外需セクターに対する慎重姿勢が優勢だった。中東情勢の緊張はやや後退したが、強い買い材料も乏しく、全体としてはもみ合いに近い市場心理である。"
+  },
+  "20250626": {
+    "trade_date": "2025-06-26",
+    "market_regime": "様子見",
+    "overall_bias": -0.08,
+    "confidence": 0.69,
+    "dimensions": {
+      "macro_tightening_pressure": 0.41,
+      "domestic_policy_uncertainty": 0.15,
+      "exporter_tailwind": -0.06,
+      "semiconductor_momentum": -0.14,
+      "consumer_strength": 0.04,
+      "inflation_concern": 0.26,
+      "yen_appreciation_pressure": 0.17,
+      "energy_supply_risk": 0.18,
+      "ai_theme_strength": 0.07,
+      "financial_sector_support": 0.05
+    },
+    "dominant_themes": [
+      "ドル円",
+      "米金融政策",
+      "株価指数の調整"
+    ],
+    "bullish_sectors": [
+      "内需",
+      "公益"
+    ],
+    "bearish_sectors": [
+      "ハイテク",
+      "景気敏感"
+    ],
+    "short_rationale": "為替相場や FRB 後継議長候補など米金融政策関連の話題が中心で、方向感の出にくい様子見ムードが強い。指数は反落気味だが地政学リスクはやや薄れ、弱気一辺倒ではない。"
+  },
+  "20250627": {
+    "trade_date": "2025-06-27",
+    "market_regime": "まちまち",
+    "overall_bias": 0.06,
+    "confidence": 0.66,
+    "dimensions": {
+      "macro_tightening_pressure": 0.28,
+      "domestic_policy_uncertainty": 0.19,
+      "exporter_tailwind": 0.03,
+      "semiconductor_momentum": -0.04,
+      "consumer_strength": 0.12,
+      "inflation_concern": 0.17,
+      "yen_appreciation_pressure": 0.08,
+      "energy_supply_risk": 0.11,
+      "ai_theme_strength": 0.09,
+      "financial_sector_support": 0.14
+    },
+    "dominant_themes": [
+      "為替安定",
+      "国内政策",
+      "規制・司法"
+    ],
+    "bullish_sectors": [
+      "金融",
+      "内需"
+    ],
+    "bearish_sectors": [
+      "資源関連",
+      "輸出関連"
+    ],
+    "short_rationale": "為替と海外イベントの過熱感がやや落ち着き、国内政策や司法関連のニュースが中心に移った。市場心理は強弱入り交じるが、前半のリスクオフ局面よりはやや安定方向に戻っている。"
+  }
+}

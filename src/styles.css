@@ -244,6 +244,10 @@ h2 {
   width: 100%;
 }
 
+.phase-card.locked {
+  opacity: 0.82;
+}
+
 .phase-head {
   display: flex;
   align-items: flex-start;
@@ -342,6 +346,13 @@ h2 {
   transform: translateY(-1px);
 }
 
+.button:disabled {
+  opacity: 0.52;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 .button.primary {
   background: var(--accent);
   color: white;
@@ -372,11 +383,109 @@ h2 {
   padding: 16px;
 }
 
+.json-view {
+  margin-top: 14px;
+  max-height: 360px;
+}
+
+.phase-lock-note {
+  margin-bottom: 14px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
 .chip-list {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 12px;
+}
+
+.phase-graph-panel {
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.42);
+}
+
+.phase-graph-head {
+  display: grid;
+  gap: 14px;
+  align-items: end;
+  margin-bottom: 14px;
+}
+
+.phase-graph-head h3 {
+  margin: 0 0 6px;
+  font-size: 1.05rem;
+}
+
+.phase-graph-description {
+  margin-bottom: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.phase-graph-field {
+  margin-bottom: 0;
+}
+
+.news-network-canvas {
+  width: 100%;
+  height: 360px;
+  min-height: 360px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at top left, rgba(163, 66, 36, 0.08), transparent 24%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(243, 234, 223, 0.86));
+  overflow: hidden;
+}
+
+.phase-graph-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.graph-empty-state {
+  display: grid;
+  place-items: center;
+  min-height: 120px;
+  padding: 18px;
+  border: 1px dashed rgba(58, 46, 24, 0.22);
+  border-radius: 16px;
+  color: var(--muted);
+  text-align: center;
+  line-height: 1.6;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.phase-section {
+  margin-top: 18px;
+}
+
+.phase-section h3 {
+  margin-bottom: 10px;
+  font-size: 1.05rem;
+}
+
+.headline-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+
+.headline-item {
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.52);
+  line-height: 1.5;
 }
 
 .chip {
@@ -521,6 +630,10 @@ h2 {
     grid-template-columns: 1.35fr 0.9fr;
     align-items: stretch;
   }
+
+  .phase-graph-head {
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
+  }
 }
 
 @media (max-width: 899px) {
@@ -560,5 +673,10 @@ h2 {
   .pdf-viewer {
     min-height: 64vh;
     height: 64vh;
+  }
+
+  .news-network-canvas {
+    height: 300px;
+    min-height: 300px;
   }
 }

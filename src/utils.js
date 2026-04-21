@@ -1,5 +1,4 @@
 export const STORAGE_KEYS = {
-  apiKey: "gemini_api_key",
   pipeline: "app_state_pipeline",
   sentiments: "daily_sentiment_representation",
   entities: "entity_extraction_result",
@@ -9,12 +8,24 @@ export const STORAGE_KEYS = {
   prediction: "prediction_result",
 };
 
+export const DEMO_TARGET_DATES = ["20250624", "20250625", "20250626"];
+
+export const SIMILARITY_NEWS_MARKET_OVERLAP_DATES = [
+  "20250623",
+  "20250624",
+  "20250625",
+  "20250626",
+  "20250627"
+];
+
 const baseUrl = import.meta.env.BASE_URL || "./";
 
 export const REPO_SAMPLE_PATHS = {
   news: `${baseUrl}news_full_mcq3_type9_entities_novectors.jsonl`,
   market: `${baseUrl}market_data/2025-06-22_2025-06-28/market_data_all.csv`,
   fetchReport: `${baseUrl}market_data/2025-06-22_2025-06-28/fetch_report.json`,
+  precomputedSentiments: `${baseUrl}precomputed/daily_sentiment_representations.json`,
+  precomputedEntities: `${baseUrl}precomputed/entity_extraction_results.json`,
 };
 
 export const DEFAULT_SENTIMENT_SCHEMA = {
@@ -189,16 +200,6 @@ export function formatPercent(value) {
   return `${value >= 0 ? "+" : ""}${(value * 100).toFixed(3)}%`;
 }
 
-export function maskKey(key) {
-  if (!key) {
-    return "未設定";
-  }
-  if (key.length < 8) {
-    return "****";
-  }
-  return `${key.slice(0, 4)}...${key.slice(-4)}`;
-}
-
 export function buildNewsByDate(records) {
   return records.reduce((accumulator, record) => {
     const dateId = String(record.date_id || "").trim();
@@ -304,32 +305,6 @@ export function validateSentiment(sentiment) {
   if (typeof sentiment.dimensions !== "object") {
     throw new Error("dimensions は object である必要があります");
   }
-}
-
-export function buildSentimentPrompt(dateId, records) {
-  const articles = records.slice(0, 60).map((record, index) => ({
-    index: index + 1,
-    headline: record.headline,
-    sub_headline: record.sub_headline,
-    source: record.provider_id,
-    date_time: record.date_time || record.this_revision_created,
-    named_entities: ensureArray(record.named_entities).slice(0, 20),
-    content: String(record.content || "").slice(0, 1800)
-  }));
-
-  return [
-    "あなたは日本株市場向けの日次センチメント構造化分析器です。",
-    "以下のニュース群から、その日の市場心理・材料・圧力構造を JSON で返してください。",
-    "自由文ではなく、指定したスキーマに従う JSON のみを返してください。",
-    `対象 date_id: ${dateId}`,
-    `対象 trade_date: ${formatDateId(dateId)}`,
-    "overall_bias と dimensions は -1.0 から 1.0、confidence は 0.0 から 1.0 の範囲で返してください。",
-    "文字列の値は日本語で返してください。",
-    "market_regime の値も日本語で、例えば リスクオン / リスクオフ / まちまち / イベント主導 のように返してください。",
-    "dominant_themes、bullish_sectors、bearish_sectors、short_rationale は必ず日本語で返してください。",
-    "short_rationale は日本語で簡潔に 1 文から 3 文で返してください。",
-    JSON.stringify(articles, null, 2)
-  ].join("\n");
 }
 
 export function normalizeWeights(weights) {

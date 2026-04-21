@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import {
   STORAGE_KEYS,
   REPO_SAMPLE_PATHS,
-  DEFAULT_SENTIMENT_SCHEMA,
+  DEMO_TARGET_DATES,
+  SIMILARITY_NEWS_MARKET_OVERLAP_DATES,
   loadJson,
   saveJson,
   parseJsonl,
@@ -11,21 +12,31 @@ import {
   formatDateId,
   compactDateId,
   formatPercent,
-  maskKey,
   buildNewsByDate,
   normalizeNewsRecord,
   buildNewsAggregate,
   normalizeEntityPayload,
-  deriveEntitiesFromNews,
   sentimentToVector,
   validateSentiment,
-  buildSentimentPrompt,
   normalizeWeights,
   cosineSimilarity,
   jaccardSimilarity
 } from "./utils";
+import Phase2NewsNetwork from "./components/Phase2NewsNetwork";
 
 const MARKET_LOOKBACK_DAYS = 5;
+const DEFAULT_TICKER = "^N225";
+
+const initialPipelineState = {
+  dataReady: false,
+  targetDateConfirmed: false,
+  sentimentConfirmed: false,
+  entitiesConfirmed: false,
+  marketConfirmed: false,
+  predictionReady: false,
+  selectedDate: DEMO_TARGET_DATES[0],
+  selectedTicker: DEFAULT_TICKER
+};
 
 function App() {
   const heroImageUrl = new URL(`${import.meta.env.BASE_URL}image-stock.jpg`, window.location.href).href;
@@ -33,56 +44,118 @@ function App() {
     `${import.meta.env.BASE_URL}Glass_Box_Quant_Nikkei_Architecture(1).pdf`,
     window.location.href
   ).href;
-  const [apiKey, setApiKey] = useState(localStorage.getItem(STORAGE_KEYS.apiKey) || "");
-  const [pipeline, setPipeline] = useState(loadJson(STORAGE_KEYS.pipeline, {}));
+
+  const [pipeline, setPipeline] = useState({ ...initialPipelineState, ...loadJson(STORAGE_KEYS.pipeline, {}) });
   const [newsRecords, setNewsRecords] = useState([]);
   const [newsByDate, setNewsByDate] = useState({});
-  const [newsMeta, setNewsMeta] = useState(loadJson(STORAGE_KEYS.newsMetadata, {}));
+  const [marketData, setMarketData] = useState({ rows: [], fetchReport: null });
+  const [precomputedSentiments, setPrecomputedSentiments] = useState({});
+  const [precomputedEntities, setPrecomputedEntities] = useState({});
   const [sentiments, setSentiments] = useState(loadJson(STORAGE_KEYS.sentiments, {}));
   const [entities, setEntities] = useState(loadJson(STORAGE_KEYS.entities, {}));
-  const [marketData, setMarketData] = useState(loadJson(STORAGE_KEYS.market, { rows: [], fetchReport: null }));
   const [prediction, setPrediction] = useState(loadJson(STORAGE_KEYS.prediction, null));
-  const [newsTextarea, setNewsTextarea] = useState("");
-  const [sentimentTextarea, setSentimentTextarea] = useState("");
-  const [entityTextarea, setEntityTextarea] = useState("");
-  const [marketTextarea, setMarketTextarea] = useState("");
-  const [modelName, setModelName] = useState("gemini-3-flash-preview");
   const [weights, setWeights] = useState({ sentiment: 0.4, entity: 0.3, market: 0.3 });
-  const [status, setStatus] = useState({
-    api: { kind: "neutral", text: "未設定", detail: "Gemini API Key は未保存です。" },
-    news: { kind: "neutral", text: "未読込", detail: "ニュースデータを読み込むと概要が表示されます。" },
-    sentiment: { kind: "neutral", text: "未生成", detail: "対象日のニュースを選ぶと、ここに入力概要と保存状態が出ます。" },
-    entity: { kind: "neutral", text: "未設定", detail: "ニュースから派生した注目キーワード概要や手動投入結果を表示します。" },
-    market: { kind: "neutral", text: "未読込", detail: "市場データを読むとティッカー一覧と日付範囲を表示します。" },
-    similarity: { kind: "neutral", text: "未計算", detail: "対象日・対象ティッカーを選び、類似日計算を実行してください。" },
-    output: { kind: "neutral", text: "未出力" }
+  const [loadState, setLoadState] = useState({
+    kind: "busy",
+    text: "読込中",
+    detail: "ニュース・市場データ・事前生成結果を読み込んでいます。"
   });
-  const dialogRef = useRef(null);
   const pdfDialogRef = useRef(null);
 
   useEffect(() => {
-    const rawNews = localStorage.getItem(STORAGE_KEYS.newsRaw);
-    if (rawNews) {
+    let active = true;
+
+    async function preloadDemoData() {
+      setLoadState({
+        kind: "busy",
+        text: "読込中",
+        detail: "ニュース・市場データ・事前生成結果を読み込んでいます。"
+      });
+
       try {
-        const parsed = JSON.parse(rawNews);
-        setNewsRecords(parsed.records || []);
-        setNewsByDate(parsed.byDate || {});
-      } catch {
-        setNewsRecords([]);
-        setNewsByDate({});
+        const [
+          newsResponse,
+          marketResponse,
+          reportResponse,
+          sentimentResponse,
+          entityResponse
+        ] = await Promise.all([
+          fetch(REPO_SAMPLE_PATHS.news),
+          fetch(REPO_SAMPLE_PATHS.market),
+          fetch(REPO_SAMPLE_PATHS.fetchReport),
+          fetch(REPO_SAMPLE_PATHS.precomputedSentiments),
+          fetch(REPO_SAMPLE_PATHS.precomputedEntities)
+        ]);
+
+        const failedResponse = [
+          newsResponse,
+          marketResponse,
+          reportResponse,
+          sentimentResponse,
+          entityResponse
+        ].find((response) => !response.ok);
+
+        if (failedResponse) {
+          throw new Error(`HTTP ${failedResponse.status}`);
+        }
+
+        const [newsText, marketText, fetchReport, rawSentiments, rawEntities] = await Promise.all([
+          newsResponse.text(),
+          marketResponse.text(),
+          reportResponse.json(),
+          sentimentResponse.json(),
+          entityResponse.json()
+        ]);
+
+        const records = parseJsonl(newsText).map(normalizeNewsRecord);
+        const byDate = buildNewsByDate(records);
+        const rows = parseCsv(marketText);
+        const normalizedSentiments = normalizePrecomputedSentiments(rawSentiments);
+        const normalizedEntities = normalizePrecomputedEntities(rawEntities);
+        const tickers = [...new Set(rows.map((row) => row.ticker))];
+
+        if (!active) {
+          return;
+        }
+
+        setNewsRecords(records);
+        setNewsByDate(byDate);
+        setMarketData({ rows, fetchReport });
+        setPrecomputedSentiments(normalizedSentiments);
+        setPrecomputedEntities(normalizedEntities);
+        setPipeline((current) => ({
+          ...initialPipelineState,
+          ...current,
+          selectedDate: DEMO_TARGET_DATES.includes(current.selectedDate) ? current.selectedDate : DEMO_TARGET_DATES[0],
+          selectedTicker: tickers.includes(current.selectedTicker) ? current.selectedTicker : tickers[0] || DEFAULT_TICKER
+        }));
+        setLoadState({
+          kind: "ready",
+          text: "準備完了",
+          detail:
+            `ニュース: ${records.length}件\n` +
+            `対象日候補: ${DEMO_TARGET_DATES.map(formatDateId).join(", ")}\n` +
+            `市場データ: ${rows.length}行\n` +
+            `事前生成センチメント: ${Object.keys(normalizedSentiments).length}日分\n` +
+            `事前生成キーワード: ${Object.keys(normalizedEntities).length}日分`
+        });
+      } catch (error) {
+        if (!active) {
+          return;
+        }
+        setLoadState({
+          kind: "error",
+          text: "失敗",
+          detail: `デモ用データの読込に失敗しました: ${error.message}`
+        });
       }
     }
+
+    preloadDemoData();
+    return () => {
+      active = false;
+    };
   }, []);
-
-  useEffect(() => {
-    if (!apiKey && dialogRef.current && !dialogRef.current.open) {
-      dialogRef.current.showModal();
-    }
-  }, [apiKey]);
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.apiKey, apiKey);
-  }, [apiKey]);
 
   useEffect(() => {
     saveJson(STORAGE_KEYS.pipeline, pipeline);
@@ -97,10 +170,6 @@ function App() {
   }, [entities]);
 
   useEffect(() => {
-    saveJson(STORAGE_KEYS.market, marketData);
-  }, [marketData]);
-
-  useEffect(() => {
     if (prediction) {
       saveJson(STORAGE_KEYS.prediction, prediction);
     } else {
@@ -108,504 +177,246 @@ function App() {
     }
   }, [prediction]);
 
-  useEffect(() => {
-    const hasKey = Boolean(apiKey);
-    setStatus((current) => ({
-      ...current,
-      api: {
-        kind: hasKey ? "ready" : "neutral",
-        text: hasKey ? "保存済み" : "未設定",
-        detail: hasKey
-          ? `保存済みキー: ${maskKey(apiKey)}\n保存先: localStorage\n注意: デモ用途のみ`
-          : "Gemini API Key は未保存です。"
-      }
-    }));
-  }, [apiKey]);
-
-  useEffect(() => {
-    const dates = Object.keys(newsByDate).sort();
-    if (!newsRecords.length) {
-      setStatus((current) => ({
-        ...current,
-        news: {
-          kind: "neutral",
-          text: "未読込",
-          detail: "ニュースデータを読み込むと概要が表示されます。"
-        }
-      }));
-      return;
-    }
-    const uniqueEntities = new Set(newsRecords.flatMap((record) => ensureArray(record.named_entities))).size;
-    setStatus((current) => ({
-      ...current,
-      news: {
-        kind: "ready",
-        text: "読込済み",
-        detail:
-          `レコード数: ${newsRecords.length}\n` +
-          `日付数: ${dates.length}\n` +
-          `期間: ${dates[0]} 〜 ${dates[dates.length - 1]}\n` +
-          `ユニークエンティティ数: ${uniqueEntities}\n` +
-          `備考: canceled=true でも除外せず読込`
-      }
-    }));
-  }, [newsRecords, newsByDate]);
-
-  const newsDates = Object.keys(newsByDate).sort();
-  const selectedDate = pipeline.selectedDate && newsDates.includes(pipeline.selectedDate)
+  const selectedDate = DEMO_TARGET_DATES.includes(pipeline.selectedDate)
     ? pipeline.selectedDate
-    : newsDates[0] || "";
+    : DEMO_TARGET_DATES[0];
+  const selectedTradeDate = formatDateId(selectedDate);
+  const selectedRecords = newsByDate[selectedDate] || [];
+  const selectedNewsAggregate = buildNewsAggregate(selectedRecords);
+  const selectedHeadlines = selectedRecords
+    .map((record) => record.headline)
+    .filter(Boolean)
+    .slice(0, 8);
+  const selectedNewsGraph = buildDailyNewsGraph(newsByDate, selectedDate);
 
-  const tickers = [...new Set((marketData.rows || []).map((row) => row.ticker))];
-  const selectedTicker = pipeline.selectedTicker && tickers.includes(pipeline.selectedTicker)
-    ? pipeline.selectedTicker
-    : tickers[0] || "";
+  const marketRows = marketData.rows || [];
+  const tickers = [...new Set(marketRows.map((row) => row.ticker))];
+  const selectedTicker = tickers.includes(pipeline.selectedTicker) ? pipeline.selectedTicker : tickers[0] || DEFAULT_TICKER;
+  const selectedTickerRows = marketRows
+    .filter((row) => row.ticker === selectedTicker)
+    .sort((a, b) => a.trade_date.localeCompare(b.trade_date));
 
-  const marketDates = (marketData.rows || [])
-    .filter((row) => !selectedTicker || row.ticker === selectedTicker)
-    .map((row) => row.trade_date)
-    .sort();
-  const selectedMarketDate = pipeline.selectedDate && marketDates.includes(formatDateId(pipeline.selectedDate))
-    ? formatDateId(pipeline.selectedDate)
-    : selectedDate && marketDates.includes(formatDateId(selectedDate))
-      ? formatDateId(selectedDate)
-      : marketDates[0] || "";
+  const selectedPrecomputedSentiment = precomputedSentiments[selectedDate] || null;
+  const selectedPrecomputedEntities = precomputedEntities[selectedDate] || null;
 
-  useEffect(() => {
-    if (selectedDate && sentimentTextarea === "" && sentiments[selectedDate]) {
-      setSentimentTextarea(JSON.stringify(sentiments[selectedDate], null, 2));
-    }
-    if (selectedDate && entityTextarea === "" && entities[selectedDate]) {
-      setEntityTextarea(JSON.stringify(entities[selectedDate], null, 2));
-    }
-  }, [selectedDate, sentiments, entities, sentimentTextarea, entityTextarea]);
-
-  useEffect(() => {
-    if (!selectedDate) {
-      setStatus((current) => ({
-        ...current,
-        sentiment: {
-          kind: "neutral",
-          text: "未生成",
-          detail: "対象日のニュースを選ぶと、ここに入力概要と保存状態が出ます。"
-        },
-        entity: {
-          kind: "neutral",
-          text: "未設定",
-          detail: "ニュースから派生した注目キーワード概要や手動投入結果を表示します。"
-        }
-      }));
-      return;
-    }
-
-    const records = newsByDate[selectedDate] || [];
-    const aggregate = buildNewsAggregate(records);
-    const derived = deriveEntitiesFromNews(newsByDate, selectedDate);
-    const hasSentiment = Boolean(sentiments[selectedDate]);
-    const hasEntity = Boolean(entities[selectedDate]);
-
-    setStatus((current) => ({
-      ...current,
-      sentiment: {
-        kind: hasSentiment ? "ready" : records.length ? "busy" : "neutral",
-        text: hasSentiment ? "保存済み" : records.length ? "生成可能" : "未入力",
-        detail:
-          `対象日: ${selectedDate}\n` +
-          `ニュース件数: ${records.length}\n` +
-          `ユニークキーワード数: ${aggregate.uniqueEntityCount}\n` +
-          `平均本文長: ${aggregate.averageContentLength.toFixed(1)}\n` +
-          `保存済みセンチメント: ${hasSentiment ? "あり" : "なし"}`
-      },
-      entity: {
-        kind: hasEntity || derived.named_entities.length ? "ready" : "neutral",
-        text: hasEntity ? "保存済み" : derived.named_entities.length ? "派生可能" : "未設定",
-        detail:
-          `対象日: ${selectedDate}\n` +
-          `ニュース由来ユニークキーワード数: ${derived.named_entities.length}\n` +
-          `保存済み: ${hasEntity ? "あり" : "なし"}\n` +
-          `先頭例: ${(entities[selectedDate]?.named_entities || derived.named_entities).slice(0, 12).join(", ") || "-"}`
-      }
-    }));
-  }, [selectedDate, newsByDate, sentiments, entities]);
-
-  useEffect(() => {
-    const rows = marketData.rows || [];
-    if (!rows.length) {
-      setStatus((current) => ({
-        ...current,
-        market: {
-          kind: "neutral",
-          text: "未読込",
-          detail: "市場データを読むとティッカー一覧と日付範囲を表示します。"
-        }
-      }));
-      return;
-    }
-    const dates = rows.map((row) => row.trade_date).sort();
-    const tickerList = [...new Set(rows.map((row) => row.ticker))];
-    setStatus((current) => ({
-      ...current,
-      market: {
-        kind: "ready",
-        text: "読込済み",
-        detail:
-          `行数: ${rows.length}\n` +
-          `ティッカー: ${tickerList.join(", ")}\n` +
-          `CSV 内期間: ${dates[0]} 〜 ${dates[dates.length - 1]}\n` +
-          (marketData.fetchReport
-            ? `fetch_report 範囲: ${marketData.fetchReport.history_fetch_start} 〜 ${marketData.fetchReport.history_fetch_end}\nrequested_dates: ${marketData.fetchReport.requested_dates.join(", ")}`
-            : "fetch_report: 未読込")
-      }
-    }));
-  }, [marketData]);
-
-  useEffect(() => {
-    if (!prediction) {
-      setStatus((current) => ({
-        ...current,
-        similarity: {
-          kind: "neutral",
-          text: "未計算",
-          detail: "対象日・対象ティッカーを選び、類似日計算を実行してください。"
-        },
-        output: {
-          kind: "neutral",
-          text: "未出力"
-        }
-      }));
-      return;
-    }
-    setStatus((current) => ({
-      ...current,
-      similarity: {
-        kind: "ready",
-        text: "計算済み",
-        detail:
-          `対象日: ${prediction.targetDate}\n` +
-          `対象ティッカー: ${prediction.ticker}\n` +
-          `最類似日: ${prediction.bestCandidate?.date || "-"}\n` +
-          `予測方向: ${prediction.predictionDirection}\n` +
-          `予測変化率: ${formatPercent(prediction.predictionPct)}`
-      },
-      output: {
-        kind: "ready",
-        text: "出力済み"
-      }
-    }));
-  }, [prediction]);
-
-  const newsCounts = newsDates.map((date) => ({
-    date,
-    count: (newsByDate[date] || []).length
-  }));
+  const candidateDateIds = SIMILARITY_NEWS_MARKET_OVERLAP_DATES.filter((dateId) => (
+    dateId !== selectedDate
+    && Boolean(newsByDate[dateId]?.length)
+    && Boolean(precomputedSentiments[dateId])
+    && Boolean(precomputedEntities[dateId])
+    && selectedTickerRows.some((row) => row.trade_date === formatDateId(dateId))
+  ));
 
   const summaryItems = [
-    { label: "API", value: apiKey ? "保存済み" : "未設定" },
-    { label: "News", value: newsRecords.length ? `${newsRecords.length}件` : "未読込" },
-    { label: "Dates", value: newsDates.length },
-    { label: "Sentiments", value: Object.keys(sentiments).length },
-    { label: "Entities", value: Object.keys(entities).length },
-    { label: "Market", value: marketData.rows?.length || 0 }
+    { label: "Data", value: loadState.kind === "ready" ? "準備済み" : loadState.text },
+    { label: "Target", value: formatDateId(selectedDate) },
+    { label: "Ticker", value: selectedTicker || "-" },
+    { label: "Candidates", value: candidateDateIds.length },
+    { label: "Sentiment", value: pipeline.sentimentConfirmed ? "確認済み" : "未確認" },
+    { label: "Prediction", value: prediction ? prediction.predictionDirection : "未出力" }
   ];
 
-  async function readFile(file, handler) {
-    if (!file) {
+  const phaseStatus = {
+    preparation: loadState.kind === "error"
+      ? { kind: "error", text: "失敗" }
+      : pipeline.dataReady
+        ? { kind: "ready", text: "確認済み" }
+        : loadState.kind === "ready"
+          ? { kind: "busy", text: "確認待ち" }
+          : { kind: "busy", text: "読込中" },
+    news: !pipeline.dataReady
+      ? { kind: "neutral", text: "待機" }
+      : pipeline.targetDateConfirmed
+        ? { kind: "ready", text: "選択済み" }
+        : { kind: "busy", text: "選択待ち" },
+    sentiment: !pipeline.targetDateConfirmed
+      ? { kind: "neutral", text: "待機" }
+      : pipeline.sentimentConfirmed
+        ? { kind: "ready", text: "確認済み" }
+        : selectedPrecomputedSentiment
+          ? { kind: "busy", text: "確認待ち" }
+          : { kind: "error", text: "欠損" },
+    entity: !pipeline.sentimentConfirmed
+      ? { kind: "neutral", text: "待機" }
+      : pipeline.entitiesConfirmed
+        ? { kind: "ready", text: "確認済み" }
+        : selectedPrecomputedEntities
+          ? { kind: "busy", text: "確認待ち" }
+          : { kind: "error", text: "欠損" },
+    market: !pipeline.entitiesConfirmed
+      ? { kind: "neutral", text: "待機" }
+      : pipeline.marketConfirmed
+        ? { kind: "ready", text: "確認済み" }
+        : marketRows.length
+          ? { kind: "busy", text: "確認待ち" }
+          : { kind: "error", text: "欠損" },
+    similarity: !pipeline.marketConfirmed
+      ? { kind: "neutral", text: "待機" }
+      : prediction
+        ? { kind: "ready", text: "計算済み" }
+        : candidateDateIds.length
+          ? { kind: "busy", text: "計算待ち" }
+          : { kind: "error", text: "候補不足" },
+    output: prediction
+      ? { kind: "ready", text: "出力済み" }
+      : pipeline.marketConfirmed
+        ? { kind: "busy", text: "待機" }
+        : { kind: "neutral", text: "待機" }
+  };
+
+  function resetAfterDateSelection(nextDate) {
+    setPrediction(null);
+    setSentiments({});
+    setEntities({});
+    setPipeline((current) => ({
+      ...current,
+      selectedDate: nextDate,
+      targetDateConfirmed: false,
+      sentimentConfirmed: false,
+      entitiesConfirmed: false,
+      marketConfirmed: false,
+      predictionReady: false
+    }));
+  }
+
+  function confirmPreparation() {
+    setPrediction(null);
+    setSentiments({});
+    setEntities({});
+    setPipeline((current) => ({
+      ...current,
+      dataReady: true,
+      targetDateConfirmed: false,
+      sentimentConfirmed: false,
+      entitiesConfirmed: false,
+      marketConfirmed: false,
+      predictionReady: false
+    }));
+  }
+
+  function confirmTargetDate() {
+    setPrediction(null);
+    setSentiments({});
+    setEntities({});
+    setPipeline((current) => ({
+      ...current,
+      targetDateConfirmed: true,
+      sentimentConfirmed: false,
+      entitiesConfirmed: false,
+      marketConfirmed: false,
+      predictionReady: false
+    }));
+  }
+
+  function confirmSentiment() {
+    if (!selectedPrecomputedSentiment) {
       return;
     }
-    const text = await file.text();
-    handler(text, file.name);
+    setSentiments({ [selectedDate]: selectedPrecomputedSentiment });
+    setPrediction(null);
+    setPipeline((current) => ({
+      ...current,
+      sentimentConfirmed: true,
+      entitiesConfirmed: false,
+      marketConfirmed: false,
+      predictionReady: false
+    }));
   }
 
-  function updatePipeline(next) {
-    setPipeline((current) => ({ ...current, ...next }));
+  function confirmEntities() {
+    if (!selectedPrecomputedEntities) {
+      return;
+    }
+    setEntities({ [selectedDate]: selectedPrecomputedEntities });
+    setPrediction(null);
+    setPipeline((current) => ({
+      ...current,
+      entitiesConfirmed: true,
+      marketConfirmed: false,
+      predictionReady: false
+    }));
   }
 
-  function clearStoredKeys() {
+  function confirmMarket() {
+    setPrediction(null);
+    setPipeline((current) => ({
+      ...current,
+      marketConfirmed: true,
+      predictionReady: false
+    }));
+  }
+
+  function updateSelectedTicker(ticker) {
+    setPrediction(null);
+    setPipeline((current) => ({
+      ...current,
+      selectedTicker: ticker,
+      predictionReady: false
+    }));
+  }
+
+  function resetSessionState() {
     [
-      STORAGE_KEYS.apiKey,
       STORAGE_KEYS.pipeline,
       STORAGE_KEYS.sentiments,
       STORAGE_KEYS.entities,
-      STORAGE_KEYS.market,
-      STORAGE_KEYS.newsRaw,
-      STORAGE_KEYS.newsMetadata,
       STORAGE_KEYS.prediction
     ].forEach((key) => localStorage.removeItem(key));
-    setApiKey("");
-    setPipeline({});
-    setNewsRecords([]);
-    setNewsByDate({});
-    setNewsMeta({});
+
+    setPrediction(null);
     setSentiments({});
     setEntities({});
-    setMarketData({ rows: [], fetchReport: null });
-    setPrediction(null);
-    setNewsTextarea("");
-    setSentimentTextarea("");
-    setEntityTextarea("");
-    setMarketTextarea("");
-  }
-
-  async function loadRepoSample(kind) {
-    try {
-      const response = await fetch(REPO_SAMPLE_PATHS[kind]);
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-      const text = await response.text();
-      if (kind === "news") {
-        loadNewsText(text, REPO_SAMPLE_PATHS.news);
-      }
-      if (kind === "market") {
-        loadMarketCsv(text, REPO_SAMPLE_PATHS.market);
-        try {
-          const reportResponse = await fetch(REPO_SAMPLE_PATHS.fetchReport);
-          if (reportResponse.ok) {
-            const reportText = await reportResponse.text();
-            const report = JSON.parse(reportText);
-            setMarketData((current) => ({
-              ...current,
-              fetchReport: report
-            }));
-          }
-        } catch {
-          // ignore report preload errors
-        }
-      }
-    } catch (error) {
-      setStatus((current) => ({
-        ...current,
-        [kind]: {
-          kind: "error",
-          text: "失敗",
-          detail: `リポジトリ内サンプルの取得に失敗しました: ${error.message}\nGitHub Pages 上では file input を使ってください。`
-        }
-      }));
-    }
-  }
-
-  function loadNewsText(text, sourceLabel) {
-    try {
-      const records = parseJsonl(text).map(normalizeNewsRecord);
-      if (!records.length) {
-        throw new Error("有効な JSONL レコードがありません");
-      }
-      const byDate = buildNewsByDate(records);
-      const dates = Object.keys(byDate).sort();
-      setNewsRecords(records);
-      setNewsByDate(byDate);
-      const meta = {
-        source: sourceLabel,
-        loadedAt: new Date().toISOString(),
-        recordCount: records.length,
-        dates
-      };
-      setNewsMeta(meta);
-      saveJson(STORAGE_KEYS.newsRaw, { records, byDate });
-      saveJson(STORAGE_KEYS.newsMetadata, meta);
-      updatePipeline({ newsLoaded: true, selectedDate: dates[0] || "" });
-    } catch (error) {
-      setStatus((current) => ({
-        ...current,
-        news: { kind: "error", text: "エラー", detail: `ニュース読込に失敗しました: ${error.message}` }
-      }));
-    }
-  }
-
-  function loadEntityText(text) {
-    try {
-      const items = text.trim().startsWith("[") ? JSON.parse(text) : parseJsonl(text);
-      const next = { ...entities };
-      items.forEach((item) => {
-        const normalized = normalizeEntityPayload(item);
-        next[normalized.date_id] = normalized;
-      });
-      setEntities(next);
-      updatePipeline({ entitiesConfigured: true });
-    } catch (error) {
-      setStatus((current) => ({
-        ...current,
-        entity: { kind: "error", text: "エラー", detail: `注目キーワード読込に失敗しました: ${error.message}` }
-      }));
-    }
-  }
-
-  function loadMarketCsv(text) {
-    try {
-      const rows = parseCsv(text);
-      if (!rows.length) {
-        throw new Error("有効な CSV 行がありません");
-      }
-      setMarketData((current) => ({ ...current, rows }));
-      updatePipeline({
-        marketLoaded: true,
-        selectedTicker: [...new Set(rows.map((row) => row.ticker))][0] || ""
-      });
-    } catch (error) {
-      setStatus((current) => ({
-        ...current,
-        market: { kind: "error", text: "エラー", detail: `市場データ読込に失敗しました: ${error.message}` }
-      }));
-    }
-  }
-
-  function loadFetchReport(text) {
-    try {
-      setMarketData((current) => ({ ...current, fetchReport: JSON.parse(text) }));
-    } catch (error) {
-      setStatus((current) => ({
-        ...current,
-        market: { kind: "error", text: "エラー", detail: `fetch_report 読込に失敗しました: ${error.message}` }
-      }));
-    }
-  }
-
-  async function generateSentiment() {
-    if (!selectedDate) {
-      setStatus((current) => ({
-        ...current,
-        sentiment: { kind: "error", text: "エラー", detail: "ニュース日付が未選択です。" }
-      }));
-      return;
-    }
-    if (!apiKey) {
-      setStatus((current) => ({
-        ...current,
-        sentiment: { kind: "error", text: "エラー", detail: "Gemini API Key が未設定です。" }
-      }));
-      return;
-    }
-    const records = newsByDate[selectedDate] || [];
-    if (!records.length) {
-      setStatus((current) => ({
-        ...current,
-        sentiment: { kind: "error", text: "エラー", detail: "対象日のニュースがありません。" }
-      }));
-      return;
-    }
-
-    setStatus((current) => ({
-      ...current,
-      sentiment: { kind: "busy", text: "生成中", detail: "Gemini に structured output を要求しています。" }
-    }));
-
-    try {
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelName)}:generateContent`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-goog-api-key": apiKey
-          },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: buildSentimentPrompt(selectedDate, records) }] }],
-            generationConfig: {
-              responseMimeType: "application/json",
-              responseSchema: DEFAULT_SENTIMENT_SCHEMA
-            }
-          })
-        }
-      );
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${await response.text()}`);
-      }
-      const payload = await response.json();
-      const candidateText = payload?.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (!candidateText) {
-        throw new Error("Gemini 応答から JSON テキストを取得できませんでした");
-      }
-      const sentiment = JSON.parse(candidateText);
-      if (!sentiment.trade_date) {
-        sentiment.trade_date = formatDateId(selectedDate);
-      }
-      validateSentiment(sentiment);
-      const next = { ...sentiments, [selectedDate]: sentiment };
-      setSentiments(next);
-      setSentimentTextarea(JSON.stringify(sentiment, null, 2));
-      updatePipeline({ sentimentGenerated: true });
-    } catch (error) {
-      setStatus((current) => ({
-        ...current,
-        sentiment: {
-          kind: "error",
-          text: "エラー",
-          detail: `Gemini 生成に失敗しました: ${error.message}\n代替として JSON を手動貼り付けして保存できます。`
-        }
-      }));
-    }
-  }
-
-  function saveSentimentText() {
-    try {
-      const sentiment = JSON.parse(sentimentTextarea);
-      if (!sentiment.trade_date) {
-        sentiment.trade_date = formatDateId(selectedDate);
-      }
-      validateSentiment(sentiment);
-      setSentiments((current) => ({ ...current, [selectedDate]: sentiment }));
-      updatePipeline({ sentimentGenerated: true });
-    } catch (error) {
-      setStatus((current) => ({
-        ...current,
-        sentiment: { kind: "error", text: "エラー", detail: `センチメント JSON の保存に失敗しました: ${error.message}` }
-      }));
-    }
-  }
-
-  function saveEntityText() {
-    try {
-      const payload = normalizeEntityPayload(JSON.parse(entityTextarea));
-      setEntities((current) => ({ ...current, [payload.date_id]: payload }));
-      updatePipeline({ entitiesConfigured: true });
-    } catch (error) {
-      setStatus((current) => ({
-        ...current,
-        entity: { kind: "error", text: "エラー", detail: `注目キーワード JSON の保存に失敗しました: ${error.message}` }
-      }));
-    }
+    setPipeline({
+      ...initialPipelineState,
+      selectedDate: DEMO_TARGET_DATES[0],
+      selectedTicker
+    });
   }
 
   function runSimilarity() {
-    const targetDate = selectedMarketDate || formatDateId(selectedDate);
-    if (!targetDate || !selectedTicker) {
-      setStatus((current) => ({
-        ...current,
-        similarity: { kind: "error", text: "エラー", detail: "対象日と対象ティッカーを選択してください。" }
-      }));
+    if (!pipeline.marketConfirmed) {
+      return;
+    }
+
+    const targetSentiment = precomputedSentiments[selectedDate];
+    const targetEntityPayload = precomputedEntities[selectedDate];
+    const targetDate = formatDateId(selectedDate);
+
+    if (!targetSentiment || !targetEntityPayload || !selectedTicker) {
       return;
     }
 
     const normalizedWeights = normalizeWeights(weights);
-    const tickerRows = (marketData.rows || [])
-      .filter((row) => row.ticker === selectedTicker)
-      .sort((a, b) => a.trade_date.localeCompare(b.trade_date));
-    const candidateDates = [...new Set(tickerRows.map((row) => row.trade_date))]
-      .filter((date) => date !== targetDate);
 
-    const scores = candidateDates
-      .map((date) => {
-        const targetSentiment = sentiments[compactDateId(targetDate)];
-        const candidateSentiment = sentiments[compactDateId(date)];
-        const sentimentScore = targetSentiment && candidateSentiment
-          ? cosineSimilarity(sentimentToVector(targetSentiment), sentimentToVector(candidateSentiment))
-          : cosineSimilarity(
-              Object.values(buildNewsAggregate(newsByDate[compactDateId(targetDate)] || [])),
-              Object.values(buildNewsAggregate(newsByDate[compactDateId(date)] || []))
-            );
-
-        const targetEntities = entities[compactDateId(targetDate)]?.named_entities
-          || deriveEntitiesFromNews(newsByDate, compactDateId(targetDate)).named_entities;
-        const candidateEntities = entities[compactDateId(date)]?.named_entities
-          || deriveEntitiesFromNews(newsByDate, compactDateId(date)).named_entities;
-        const entityScore = jaccardSimilarity(new Set(targetEntities), new Set(candidateEntities));
-
-        const targetVector = buildMarketSequenceVector(tickerRows, targetDate, date, MARKET_LOOKBACK_DAYS);
-        const candidateVector = buildMarketSequenceVector(tickerRows, date, targetDate, MARKET_LOOKBACK_DAYS);
+    const scores = candidateDateIds
+      .map((dateId) => {
+        const candidateTradeDate = formatDateId(dateId);
+        const candidateSentiment = precomputedSentiments[dateId];
+        const candidateEntityPayload = precomputedEntities[dateId];
+        const sentimentScore = cosineSimilarity(
+          sentimentToVector(targetSentiment),
+          sentimentToVector(candidateSentiment)
+        );
+        const entityScore = jaccardSimilarity(
+          new Set(targetEntityPayload.named_entities),
+          new Set(candidateEntityPayload.named_entities)
+        );
+        const targetVector = buildMarketSequenceVector(
+          selectedTickerRows,
+          targetDate,
+          candidateTradeDate,
+          MARKET_LOOKBACK_DAYS
+        );
+        const candidateVector = buildMarketSequenceVector(
+          selectedTickerRows,
+          candidateTradeDate,
+          targetDate,
+          MARKET_LOOKBACK_DAYS
+        );
         const marketScore = cosineSimilarity(targetVector, candidateVector);
 
         return {
-          date,
+          date: candidateTradeDate,
           sentimentScore,
           entityScore,
           marketScore,
@@ -618,27 +429,22 @@ function App() {
       .sort((a, b) => b.totalScore - a.totalScore);
 
     if (!scores.length) {
-      setStatus((current) => ({
-        ...current,
-        similarity: { kind: "error", text: "エラー", detail: "比較対象の日付が不足しています。" }
-      }));
       return;
     }
 
     const bestCandidate = scores[0];
-    const dates = [...new Set(tickerRows.map((row) => row.trade_date))].sort();
-    const index = dates.indexOf(bestCandidate.date);
-    const nextTradeDate = index >= 0 ? dates[index + 1] || null : null;
-    const nextTradeRow = (marketData.rows || []).find(
+    const tickerDates = [...new Set(selectedTickerRows.map((row) => row.trade_date))].sort();
+    const candidateIndex = tickerDates.indexOf(bestCandidate.date);
+    const nextTradeDate = candidateIndex >= 0 ? tickerDates[candidateIndex + 1] || null : null;
+    const nextTradeRow = marketRows.find(
       (row) => row.ticker === selectedTicker && row.trade_date === nextTradeDate
     );
     const predictionPct = nextTradeRow ? Number(nextTradeRow.day_change_pct) / 100 : null;
     const predictionDirection = predictionPct == null ? "未知" : predictionPct >= 0 ? "上昇" : "下落";
-    const targetEntities = entities[compactDateId(targetDate)]?.named_entities
-      || deriveEntitiesFromNews(newsByDate, compactDateId(targetDate)).named_entities;
-    const candidateEntities = entities[compactDateId(bestCandidate.date)]?.named_entities
-      || deriveEntitiesFromNews(newsByDate, compactDateId(bestCandidate.date)).named_entities;
-    const overlap = [...new Set(targetEntities.filter((item) => candidateEntities.includes(item)))];
+    const candidateEntityPayload = precomputedEntities[compactDateId(bestCandidate.date)];
+    const overlap = targetEntityPayload.named_entities.filter((item) => (
+      candidateEntityPayload?.named_entities.includes(item)
+    ));
 
     setPrediction({
       createdAt: new Date().toISOString(),
@@ -652,14 +458,53 @@ function App() {
       predictionDirection,
       rationale:
         `${targetDate} の ${selectedTicker} は ${bestCandidate.date} が最類似日でした。` +
-        ` 注目キーワードの重なりは ${overlap.slice(0, 6).join(" / ") || "限定的"}。` +
-        ` 総合スコアは ${bestCandidate.totalScore.toFixed(3)}。` +
+        ` 事前生成センチメントと注目キーワードの一致が比較的強く、重なった注目語は ${overlap.slice(0, 6).join(" / ") || "限定的"} です。` +
+        ` 総合スコアは ${bestCandidate.totalScore.toFixed(3)} でした。` +
         (nextTradeRow
-          ? ` 類似日の翌営業日 ${nextTradeRow.trade_date} の実績 day_change_pct は ${formatPercent(Number(nextTradeRow.day_change_pct) / 100)} でした。`
+          ? ` 類似日の翌営業日 ${nextTradeRow.trade_date} の実績 day_change_pct は ${formatPercent(Number(nextTradeRow.day_change_pct) / 100)} です。`
           : " 類似日の翌営業日データは見つかりませんでした。")
     });
-    updatePipeline({ predictionReady: true });
+    setPipeline((current) => ({
+      ...current,
+      predictionReady: true
+    }));
   }
+
+  const preparationDetail = loadState.detail;
+  const newsDetail = selectedRecords.length
+    ? `対象日: ${selectedTradeDate}\n` +
+      `ニュース件数: ${selectedRecords.length}\n` +
+      `ユニークキーワード数: ${selectedNewsAggregate.uniqueEntityCount}\n` +
+      `平均本文長: ${selectedNewsAggregate.averageContentLength.toFixed(1)}\n` +
+      `進行状態: ${pipeline.targetDateConfirmed ? "確定済み" : "未確定"}`
+    : "ニュースを準備中です。";
+  const sentimentDetail = selectedPrecomputedSentiment
+    ? `対象日: ${selectedTradeDate}\n` +
+      `市場レジーム: ${selectedPrecomputedSentiment.market_regime}\n` +
+      `overall_bias: ${selectedPrecomputedSentiment.overall_bias}\n` +
+      `confidence: ${selectedPrecomputedSentiment.confidence}\n` +
+      `確認状態: ${pipeline.sentimentConfirmed ? "確認済み" : "未確認"}`
+    : "事前生成センチメントがありません。";
+  const entityDetail = selectedPrecomputedEntities
+    ? `対象日: ${selectedTradeDate}\n` +
+      `注目キーワード数: ${selectedPrecomputedEntities.named_entities.length}\n` +
+      `先頭例: ${selectedPrecomputedEntities.named_entities.slice(0, 8).join(", ") || "-"}\n` +
+      `確認状態: ${pipeline.entitiesConfirmed ? "確認済み" : "未確認"}`
+    : "事前生成キーワードがありません。";
+  const marketDetail = marketRows.length
+    ? `対象ティッカー: ${selectedTicker}\n` +
+      `CSV 行数: ${marketRows.length}\n` +
+      `比較候補日: ${candidateDateIds.map(formatDateId).join(", ") || "なし"}\n` +
+      `履歴範囲: ${marketData.fetchReport?.history_fetch_start || "-"} 〜 ${marketData.fetchReport?.history_fetch_end || "-"}`
+    : "市場データを準備中です。";
+  const similarityDetail = prediction
+    ? `対象日: ${prediction.targetDate}\n` +
+      `対象ティッカー: ${prediction.ticker}\n` +
+      `最類似日: ${prediction.bestCandidate?.date || "-"}\n` +
+      `予測方向: ${prediction.predictionDirection}\n` +
+      `予測変化率: ${formatPercent(prediction.predictionPct)}`
+    : `比較候補日: ${candidateDateIds.map(formatDateId).join(", ") || "なし"}\n` +
+      `重み: センチメント ${weights.sentiment.toFixed(1)} / 注目キーワード ${weights.entity.toFixed(1)} / 市場 ${weights.market.toFixed(1)}`;
 
   return (
     <div id="app">
@@ -669,21 +514,19 @@ function App() {
       >
         <div className="hero-copy">
           <p className="eyebrow">daily-aura-predictor-nikkei</p>
-          <h1>ニュース要因と市場データから翌営業日の相場傾向を読む</h1>
+          <h1>事前生成データで翌営業日の相場傾向を追うデモ</h1>
           <p className="hero-text">
-            React + Vite で構成した GitHub Pages 向けフロントエンドです。Gemini API キーはブラウザの
-            <code> localStorage </code>
-            に保存されます。この方式はデモ専用で、本番では非推奨です。
+            GitHub Pages 向けの静的フロントエンドとして、同梱済みニュース JSONL・市場データ CSV・事前生成結果 JSON を順番に確認しながら、
+            予測表示まで辿るデモ版です。対象日のニュースは
+            <code> 2025-06-24 / 2025-06-25 / 2025-06-26 </code>
+            に限定しています。
           </p>
           <div className="hero-actions">
-            <button className="button primary" onClick={() => dialogRef.current?.showModal()}>
-              Gemini API Key を設定
-            </button>
-            <button className="button ghost" onClick={() => pdfDialogRef.current?.showModal()}>
+            <button className="button primary" onClick={() => pdfDialogRef.current?.showModal()}>
               このアプリの概要
             </button>
-            <button className="button ghost" onClick={clearStoredKeys}>
-              保存状態をリセット
+            <button className="button ghost" onClick={resetSessionState}>
+              進行状態をリセット
             </button>
           </div>
         </div>
@@ -701,184 +544,223 @@ function App() {
       </header>
 
       <main className="pipeline">
-        <PhaseCard number="Phase 1" title="API キー入力" badge={status.api}>
-          <p className="phase-text">Gemini API Key はユーザー入力で扱います。ソースコードには埋め込みません。</p>
-          <div className="inline-actions">
-            <button className="button primary" onClick={() => dialogRef.current?.showModal()}>モーダルを開く</button>
-            <button className="button ghost" onClick={() => setApiKey("")}>保存キーを削除</button>
-          </div>
-          <pre className="detail-box">{status.api.detail}</pre>
-        </PhaseCard>
-
-        <PhaseCard number="Phase 2" title="ニュース入力" badge={status.news}>
+        <PhaseCard number="Phase 1" title="データ準備" badge={phaseStatus.preparation}>
           <p className="phase-text">
-            <code>news_full_mcq3_type9_entities_novectors.jsonl</code> に対応します。JSONL の手動貼り付けも可能です。
+            ニュース JSONL、市場データ CSV、事前生成済みの日次センチメント表現と注目キーワード結果を自動で読み込みます。
           </p>
-          <div className="field-grid">
-            <label className="field">
-              <span>ニュース JSONL ファイル</span>
-              <input type="file" accept=".jsonl,.json" onChange={(event) => readFile(event.target.files?.[0], loadNewsText)} />
-            </label>
-            <div className="field repo-loader">
-              <span>リポジトリ内サンプル</span>
-              <button className="button ghost" onClick={() => loadRepoSample("news")}>リポジトリ内サンプルを試す</button>
-            </div>
-          </div>
-          <label className="field">
-            <span>JSONL 手動貼り付け</span>
-            <textarea rows="8" value={newsTextarea} onChange={(event) => setNewsTextarea(event.target.value)} />
-          </label>
           <div className="inline-actions">
-            <button className="button secondary" onClick={() => loadNewsText(newsTextarea, "textarea")}>テキストから読込</button>
-            <button className="button ghost" onClick={() => { setNewsTextarea(""); setNewsRecords([]); setNewsByDate({}); }}>ニュースをクリア</button>
+            <button
+              className="button primary"
+              onClick={confirmPreparation}
+              disabled={loadState.kind !== "ready" || pipeline.dataReady}
+            >
+              {pipeline.dataReady ? "確認済み" : "サンプルデータを確認して始める"}
+            </button>
           </div>
-          <pre className="detail-box">{status.news.detail}</pre>
-          <div className="chip-list">
-            {newsCounts.map((item) => (
-              <span className="chip" key={item.date}>{item.date}: {item.count}件</span>
-            ))}
-          </div>
+          <pre className="detail-box">{preparationDetail}</pre>
         </PhaseCard>
 
-        <PhaseCard number="Phase 3" title="日次センチメント表現生成" badge={status.sentiment}>
+        <PhaseCard number="Phase 2" title="対象日ニュース選択" badge={phaseStatus.news} locked={!pipeline.dataReady}>
           <p className="phase-text">
-            ニュース群をまとめて解析し、数値だけの単純なセンチメントスコアではなく、市場の雰囲気や材料の関係性を文章と構造化データで表した「日次センチメント表現」として取得します。
-            LLM やベクトル分析で後段利用しやすいよう、意味のまとまりを保った表現として扱うことを重視しています。
+            対象日のニュースはデモ用に 3 日へ限定しています。選んだ日付のニュース件数、見出し、注目キーワードグラフを確認して次へ進みます。
           </p>
           <div className="field-grid">
             <label className="field">
               <span>対象日</span>
-              <select value={selectedDate} onChange={(event) => updatePipeline({ selectedDate: event.target.value })}>
-                {newsDates.length ? newsDates.map((date) => <option key={date} value={date}>{date}</option>) : <option>選択肢なし</option>}
-              </select>
-            </label>
-            <label className="field">
-              <span>モデル名</span>
-              <input value={modelName} onChange={(event) => setModelName(event.target.value)} />
-            </label>
-          </div>
-          <label className="field">
-            <span>日次センチメント JSON 手動貼り付け</span>
-            <textarea rows="10" value={sentimentTextarea} onChange={(event) => setSentimentTextarea(event.target.value)} />
-          </label>
-          <div className="inline-actions">
-            <button className="button primary" onClick={generateSentiment}>Gemini で生成</button>
-            <button className="button secondary" onClick={saveSentimentText}>テキストを保存</button>
-            <button className="button ghost" onClick={() => {
-              const next = { ...sentiments };
-              delete next[selectedDate];
-              setSentiments(next);
-              setSentimentTextarea("");
-            }}>対象日の保存を削除</button>
-          </div>
-          <pre className="detail-box">{status.sentiment.detail}</pre>
-        </PhaseCard>
-
-        <PhaseCard number="Phase 4" title="注目キーワード入力 / 読み込み" badge={status.entity}>
-          <p className="phase-text">Gemma 3 の出力を手動投入できます。ニュース JSONL から日付ごとの注目キーワード集合を派生させることもできます。</p>
-          <div className="field-grid">
-            <label className="field">
-              <span>注目キーワード JSON / JSONL ファイル</span>
-              <input type="file" accept=".json,.jsonl" onChange={(event) => readFile(event.target.files?.[0], loadEntityText)} />
-            </label>
-            <label className="field">
-              <span>対象日</span>
-              <select value={selectedDate} onChange={(event) => updatePipeline({ selectedDate: event.target.value })}>
-                {newsDates.length ? newsDates.map((date) => <option key={date} value={date}>{date}</option>) : <option>選択肢なし</option>}
+              <select
+                value={selectedDate}
+                onChange={(event) => resetAfterDateSelection(event.target.value)}
+                disabled={!pipeline.dataReady}
+              >
+                {DEMO_TARGET_DATES.map((dateId) => (
+                  <option key={dateId} value={dateId}>{formatDateId(dateId)}</option>
+                ))}
               </select>
             </label>
           </div>
-          <label className="field">
-            <span>注目キーワード JSON 手動貼り付け</span>
-            <textarea rows="8" value={entityTextarea} onChange={(event) => setEntityTextarea(event.target.value)} />
-          </label>
-          <div className="inline-actions">
-            <button className="button primary" onClick={() => {
-              const derived = deriveEntitiesFromNews(newsByDate, selectedDate);
-              setEntities((current) => ({ ...current, [selectedDate]: derived }));
-              setEntityTextarea(JSON.stringify(derived, null, 2));
-            }}>ニュースから派生</button>
-            <button className="button secondary" onClick={saveEntityText}>テキストを保存</button>
-            <button className="button ghost" onClick={() => {
-              const next = { ...entities };
-              delete next[selectedDate];
-              setEntities(next);
-              setEntityTextarea("");
-            }}>対象日の保存を削除</button>
-          </div>
-          <pre className="detail-box">{status.entity.detail}</pre>
-        </PhaseCard>
-
-        <PhaseCard number="Phase 5" title="市場データ入力" badge={status.market}>
-          <p className="phase-text">
-            <code>market_data_all.csv</code> と <code>market_data_requested_dates.csv</code>、補助として <code>fetch_report.json</code> を読み込みます。
-          </p>
-          <div className="field-grid">
-            <label className="field">
-              <span>市場データ CSV</span>
-              <input type="file" accept=".csv" onChange={(event) => readFile(event.target.files?.[0], loadMarketCsv)} />
-            </label>
-            <label className="field">
-              <span>補助 JSON</span>
-              <input type="file" accept=".json" onChange={(event) => readFile(event.target.files?.[0], loadFetchReport)} />
-            </label>
-            <div className="field repo-loader">
-              <span>リポジトリ内サンプル</span>
-              <button className="button ghost" onClick={() => loadRepoSample("market")}>market_data_all.csv を試す</button>
+          <pre className="detail-box">{newsDetail}</pre>
+          <div className="phase-graph-panel">
+            <div className="phase-graph-head">
+              <div>
+                <h3>日別ニュースグラフ</h3>
+                <p className="phase-graph-description">
+                  選択した 1 日分のニュースから、出現頻度の高い注目キーワードを簡易ネットワークとして表示します。
+                </p>
+              </div>
             </div>
+            {selectedNewsGraph ? (
+              <>
+                <Phase2NewsNetwork
+                  graph={selectedNewsGraph}
+                  selectedDate={selectedDate}
+                  onDateChange={resetAfterDateSelection}
+                />
+                <div className="phase-graph-summary">
+                  {selectedNewsGraph.topEntities.map((item) => (
+                    <span className="chip" key={`${selectedNewsGraph.dateId}:${item.name}`}>
+                      {item.name}: {item.count}回
+                    </span>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="graph-empty-state">対象日のニュースを表示できません。</div>
+            )}
           </div>
-          <label className="field">
-            <span>市場データ CSV 手動貼り付け</span>
-            <textarea rows="8" value={marketTextarea} onChange={(event) => setMarketTextarea(event.target.value)} />
-          </label>
+          <section className="phase-section">
+            <h3>見出しプレビュー</h3>
+            <ul className="headline-list">
+              {selectedHeadlines.map((headline) => (
+                <li className="headline-item" key={headline}>{headline}</li>
+              ))}
+            </ul>
+          </section>
+          <div className="inline-actions">
+            <button
+              className="button primary"
+              onClick={confirmTargetDate}
+              disabled={!pipeline.dataReady || !selectedRecords.length || pipeline.targetDateConfirmed}
+            >
+              {pipeline.targetDateConfirmed ? "選択済み" : "この日で進む"}
+            </button>
+          </div>
+        </PhaseCard>
+
+        <PhaseCard number="Phase 3" title="日次センチメント表現表示" badge={phaseStatus.sentiment} locked={!pipeline.targetDateConfirmed}>
+          <p className="phase-text">
+            このフェーズではアプリ内生成は行わず、あらかじめ用意した日次センチメント表現を表示します。内容を確認すると次のフェーズが有効になります。
+          </p>
+          <pre className="detail-box">{sentimentDetail}</pre>
+          <pre className="detail-box json-view">
+            {selectedPrecomputedSentiment ? JSON.stringify(selectedPrecomputedSentiment, null, 2) : "事前生成センチメントがありません。"}
+          </pre>
+          <div className="inline-actions">
+            <button
+              className="button primary"
+              onClick={confirmSentiment}
+              disabled={!pipeline.targetDateConfirmed || !selectedPrecomputedSentiment || pipeline.sentimentConfirmed}
+            >
+              {pipeline.sentimentConfirmed ? "確認済み" : "確認して次へ"}
+            </button>
+          </div>
+        </PhaseCard>
+
+        <PhaseCard number="Phase 4" title="注目キーワード表示" badge={phaseStatus.entity} locked={!pipeline.sentimentConfirmed}>
+          <p className="phase-text">
+            選択日の注目キーワード結果も事前生成済みです。キーワード集合を確認してから市場データ確認へ進みます。
+          </p>
+          <pre className="detail-box">{entityDetail}</pre>
+          <pre className="detail-box json-view">
+            {selectedPrecomputedEntities ? JSON.stringify(selectedPrecomputedEntities, null, 2) : "事前生成キーワードがありません。"}
+          </pre>
+          <div className="inline-actions">
+            <button
+              className="button primary"
+              onClick={confirmEntities}
+              disabled={!pipeline.sentimentConfirmed || !selectedPrecomputedEntities || pipeline.entitiesConfirmed}
+            >
+              {pipeline.entitiesConfirmed ? "確認済み" : "確認して次へ"}
+            </button>
+          </div>
+        </PhaseCard>
+
+        <PhaseCard number="Phase 5" title="市場データ確認" badge={phaseStatus.market} locked={!pipeline.entitiesConfirmed}>
+          <p className="phase-text">
+            市場データも静的ファイルから読み込み済みです。ティッカーを選び、今回の比較に使う市場データ範囲を確認して類似日計算へ進みます。
+          </p>
           <div className="field-grid">
             <label className="field">
               <span>対象ティッカー</span>
-              <select value={selectedTicker} onChange={(event) => updatePipeline({ selectedTicker: event.target.value })}>
-                {tickers.length ? tickers.map((ticker) => <option key={ticker} value={ticker}>{ticker}</option>) : <option>選択肢なし</option>}
-              </select>
-            </label>
-            <label className="field">
-              <span>対象日</span>
-              <select value={selectedMarketDate} onChange={(event) => updatePipeline({ selectedDate: compactDateId(event.target.value) })}>
-                {marketDates.length ? marketDates.map((date) => <option key={date} value={date}>{date}</option>) : <option>選択肢なし</option>}
+              <select
+                value={selectedTicker}
+                onChange={(event) => updateSelectedTicker(event.target.value)}
+                disabled={!pipeline.entitiesConfirmed}
+              >
+                {tickers.map((ticker) => <option key={ticker} value={ticker}>{ticker}</option>)}
               </select>
             </label>
           </div>
+          <pre className="detail-box">{marketDetail}</pre>
           <div className="inline-actions">
-            <button className="button secondary" onClick={() => loadMarketCsv(marketTextarea, "textarea")}>テキストから読込</button>
-            <button className="button ghost" onClick={() => setMarketData({ rows: [], fetchReport: null })}>市場データをクリア</button>
+            <button
+              className="button primary"
+              onClick={confirmMarket}
+              disabled={!pipeline.entitiesConfirmed || !marketRows.length || pipeline.marketConfirmed}
+            >
+              {pipeline.marketConfirmed ? "確認済み" : "市場データを確認して次へ"}
+            </button>
           </div>
-          <pre className="detail-box">{status.market.detail}</pre>
         </PhaseCard>
 
-        <PhaseCard number="Phase 6" title="類似日計算" badge={status.similarity}>
-          <p className="phase-text">注目キーワード集合、ニュース集約特徴量、市場特徴量、保存済みセンチメントがあればその特徴量も使って簡易スコアを出します。</p>
+        <PhaseCard number="Phase 6" title="類似日計算" badge={phaseStatus.similarity} locked={!pipeline.marketConfirmed}>
+          <p className="phase-text">
+            事前生成センチメント、事前生成キーワード、市場系列特徴量を合わせて総合スコアを計算します。比較候補はニュースと市場データが揃う重なり日のみです。
+          </p>
           <div className="field-grid">
             <label className="field">
               <span>重み: センチメント</span>
-              <input type="number" step="0.1" value={weights.sentiment} onChange={(event) => setWeights((current) => ({ ...current, sentiment: Number(event.target.value) }))} />
+              <input
+                type="number"
+                step="0.1"
+                value={weights.sentiment}
+                onChange={(event) => setWeights((current) => ({ ...current, sentiment: Number(event.target.value) }))}
+                disabled={!pipeline.marketConfirmed}
+              />
             </label>
             <label className="field">
               <span>重み: 注目キーワード</span>
-              <input type="number" step="0.1" value={weights.entity} onChange={(event) => setWeights((current) => ({ ...current, entity: Number(event.target.value) }))} />
+              <input
+                type="number"
+                step="0.1"
+                value={weights.entity}
+                onChange={(event) => setWeights((current) => ({ ...current, entity: Number(event.target.value) }))}
+                disabled={!pipeline.marketConfirmed}
+              />
             </label>
             <label className="field">
               <span>重み: 市場</span>
-              <input type="number" step="0.1" value={weights.market} onChange={(event) => setWeights((current) => ({ ...current, market: Number(event.target.value) }))} />
+              <input
+                type="number"
+                step="0.1"
+                value={weights.market}
+                onChange={(event) => setWeights((current) => ({ ...current, market: Number(event.target.value) }))}
+                disabled={!pipeline.marketConfirmed}
+              />
             </label>
           </div>
-          <div className="inline-actions">
-            <button className="button primary" onClick={runSimilarity}>類似日を計算</button>
-            <button className="button ghost" onClick={() => setPrediction(null)}>予測結果を削除</button>
+          <pre className="detail-box">{similarityDetail}</pre>
+          <div className="chip-list">
+            {candidateDateIds.map((dateId) => (
+              <span className="chip" key={dateId}>{formatDateId(dateId)}</span>
+            ))}
           </div>
-          <pre className="detail-box">{status.similarity.detail}</pre>
+          <div className="inline-actions">
+            <button
+              className="button primary"
+              onClick={runSimilarity}
+              disabled={!pipeline.marketConfirmed || !candidateDateIds.length}
+            >
+              類似日を計算
+            </button>
+            <button
+              className="button ghost"
+              onClick={() => {
+                setPrediction(null);
+                setPipeline((current) => ({ ...current, predictionReady: false }));
+              }}
+              disabled={!prediction}
+            >
+              計算結果をリセット
+            </button>
+          </div>
         </PhaseCard>
 
-        <PhaseCard number="Phase 7" title="予測出力表示" badge={status.output}>
-          <p className="phase-text">類似日の翌営業日の値動きを基に、対象日の予測方向と予測変化率を表示します。</p>
+        <PhaseCard number="Phase 7" title="予測出力表示" badge={phaseStatus.output} locked={!pipeline.marketConfirmed}>
+          <p className="phase-text">
+            類似日の翌営業日の値動きをその日のデモ予測として表示します。ここでは静的データに基づく比較結果を確認できます。
+          </p>
           {!prediction ? (
-            <div className="prediction-panel empty">まだ予測結果はありません。</div>
+            <div className="prediction-panel empty">Phase 6 で類似日計算を行うと、ここに予測結果を表示します。</div>
           ) : (
             <div className="prediction-panel">
               <div className="prediction-metrics">
@@ -910,31 +792,6 @@ function App() {
         </PhaseCard>
       </main>
 
-      <dialog ref={dialogRef} className="modal">
-        <form method="dialog" className="modal-card">
-          <div className="modal-head">
-            <h2>Gemini API Key</h2>
-            <button className="icon-button modal-close-button" aria-label="閉じる">
-              <span aria-hidden="true">×</span>
-            </button>
-          </div>
-          <p className="modal-text">
-            このキーはブラウザの <code>localStorage</code> に保存されます。ローカル検証・限定公開デモ専用であり、本番では非推奨です。
-          </p>
-          <label className="field">
-            <span>Gemini API Key</span>
-            <input type="password" value={apiKey} onChange={(event) => setApiKey(event.target.value.trim())} placeholder="AIza..." />
-          </label>
-          <div className="inline-actions">
-            <button className="button primary">保存</button>
-            <button className="button ghost" onClick={(event) => {
-              event.preventDefault();
-              setApiKey("");
-            }}>削除</button>
-          </div>
-        </form>
-      </dialog>
-
       <dialog ref={pdfDialogRef} className="modal modal-pdf">
         <div className="modal-card modal-card-pdf">
           <div className="modal-head">
@@ -965,6 +822,30 @@ function App() {
       </dialog>
     </div>
   );
+}
+
+function normalizePrecomputedSentiments(payload) {
+  return Object.entries(payload || {}).reduce((accumulator, [dateId, sentiment]) => {
+    const normalizedDateId = compactDateId(dateId);
+    const normalized = {
+      ...sentiment,
+      trade_date: sentiment.trade_date || formatDateId(normalizedDateId)
+    };
+    validateSentiment(normalized);
+    accumulator[normalizedDateId] = normalized;
+    return accumulator;
+  }, {});
+}
+
+function normalizePrecomputedEntities(payload) {
+  return Object.entries(payload || {}).reduce((accumulator, [dateId, entityPayload]) => {
+    const normalized = normalizeEntityPayload({
+      ...entityPayload,
+      date_id: compactDateId(dateId)
+    });
+    accumulator[normalized.date_id] = normalized;
+    return accumulator;
+  }, {});
 }
 
 function buildMarketSequenceVector(rows, anchorDate, comparisonDate, maxLookbackDays) {
@@ -1004,9 +885,70 @@ function buildMarketSequenceVector(rows, anchorDate, comparisonDate, maxLookback
   });
 }
 
-function PhaseCard({ number, title, badge, children }) {
+function buildDailyNewsGraph(newsByDate, dateId) {
+  const records = newsByDate[dateId] || [];
+  if (!dateId || !records.length) {
+    return null;
+  }
+
+  const entityCounts = new Map();
+  records.forEach((record) => {
+    ensureArray(record.named_entities)
+      .map((item) => String(item || "").trim())
+      .filter(Boolean)
+      .forEach((item) => {
+        entityCounts.set(item, (entityCounts.get(item) || 0) + 1);
+      });
+  });
+
+  const topEntities = [...entityCounts.entries()]
+    .sort((a, b) => {
+      if (b[1] !== a[1]) {
+        return b[1] - a[1];
+      }
+      return a[0].localeCompare(b[0], "ja");
+    })
+    .slice(0, 15)
+    .map(([name, count]) => ({ name, count }));
+
+  const dateNodeId = `date:${dateId}`;
+  const nodes = [
+    {
+      id: dateNodeId,
+      label: `${formatDateId(dateId)}\n${records.length}記事`,
+      group: "date",
+      value: Math.max(28, Math.min(54, 24 + records.length / 6)),
+      title: `${formatDateId(dateId)}\n記事件数: ${records.length}\n表示キーワード数: ${topEntities.length}`
+    },
+    ...topEntities.map((item) => ({
+      id: `entity:${item.name}`,
+      label: item.name,
+      group: "entity",
+      value: Math.max(14, Math.min(38, 10 + item.count * 1.2)),
+      title: `${item.name}\n出現回数: ${item.count}\n対象日記事数: ${records.length}`
+    }))
+  ];
+
+  const edges = topEntities.map((item) => ({
+    id: `${dateNodeId}->entity:${item.name}`,
+    from: dateNodeId,
+    to: `entity:${item.name}`,
+    value: item.count,
+    width: Math.max(1.5, Math.min(7, 1 + item.count / 4))
+  }));
+
+  return {
+    dateId,
+    articleCount: records.length,
+    nodes,
+    edges,
+    topEntities
+  };
+}
+
+function PhaseCard({ number, title, badge, children, locked = false }) {
   return (
-    <section className="phase-card">
+    <section className={`phase-card${locked ? " locked" : ""}`}>
       <div className="phase-head">
         <div>
           <p className="phase-number">{number}</p>
@@ -1014,6 +956,7 @@ function PhaseCard({ number, title, badge, children }) {
         </div>
         <span className={`badge ${badge.kind}`}>{badge.text}</span>
       </div>
+      {locked ? <p className="phase-lock-note">前のフェーズを完了すると操作できます。</p> : null}
       {children}
     </section>
   );

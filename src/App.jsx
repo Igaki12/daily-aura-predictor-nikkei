@@ -597,7 +597,7 @@ function App() {
 
         <PhaseCard number="Phase 2" title="対象日ニュース選択" badge={phaseStatus.news} locked={!pipeline.dataReady}>
           <p className="phase-text">
-            予測対象として選べるのは 2025-07-01 から 2025-07-04 のみです。選んだ日付のニュース件数、見出し、注目キーワードグラフを確認して次へ進みます。
+            予測対象として選べるのは 2025-07-01 から 2025-07-04 のみです。選んだ日付のニュース件数、見出し、上位 40 エンティティの共起ネットワークを確認して次へ進みます。
           </p>
           <div className="field-grid">
             <label className="field">
@@ -617,9 +617,9 @@ function App() {
           <div className="phase-graph-panel">
             <div className="phase-graph-head">
               <div>
-                <h3>日別ニュースグラフ</h3>
+                <h3>エンティティ共起ネットワーク</h3>
                 <p className="phase-graph-description">
-                  選択した 1 日分のニュースから、出現頻度の高い注目キーワードを簡易ネットワークとして表示します。
+                  選択した 1 日分のニュースで同時に登場した `named_entities` を結び、出現頻度の高い上位 40 件の関係を簡易表示します。
                 </p>
               </div>
             </div>
@@ -631,15 +631,32 @@ function App() {
                   onDateChange={resetAfterDateSelection}
                 />
                 <div className="phase-graph-summary">
-                  {selectedNewsGraph.topEntities.map((item) => (
-                    <span className="chip" key={`${selectedNewsGraph.dateId}:${item.name}`}>
-                      {item.name}: {item.count}回
-                    </span>
-                  ))}
+                  <div className="phase-graph-summary-group">
+                    <p className="phase-graph-summary-label">頻出エンティティ</p>
+                    <div className="chip-list">
+                      {selectedNewsGraph.topEntities.slice(0, 12).map((item) => (
+                        <span className="chip" key={`${selectedNewsGraph.dateId}:${item.name}`}>
+                          {item.name}: {item.count}件
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="phase-graph-summary-group">
+                    <p className="phase-graph-summary-label">強い共起ペア</p>
+                    <div className="chip-list">
+                      {selectedNewsGraph.topPairs.length ? selectedNewsGraph.topPairs.slice(0, 10).map((pair) => (
+                        <span className="chip" key={`${selectedNewsGraph.dateId}:${pair.source}:${pair.target}`}>
+                          {pair.source} × {pair.target}: {pair.count}件
+                        </span>
+                      )) : (
+                        <span className="chip">共起 2 回以上のペアはありません</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </>
             ) : (
-              <div className="graph-empty-state">対象日のニュースを表示できません。</div>
+              <div className="graph-empty-state">対象日の記事から共起関係を作れませんでした。</div>
             )}
           </div>
           <section className="phase-section">
@@ -972,13 +989,27 @@ function buildDailyNewsGraph(newsByDate, dateId) {
   }
 
   const entityCounts = new Map();
+  const pairCounts = new Map();
+
   records.forEach((record) => {
-    ensureArray(record.named_entities)
+    const uniqueEntities = [...new Set(
+      ensureArray(record.named_entities)
       .map((item) => String(item || "").trim())
       .filter(Boolean)
-      .forEach((item) => {
-        entityCounts.set(item, (entityCounts.get(item) || 0) + 1);
-      });
+    )];
+
+    uniqueEntities.forEach((item) => {
+      entityCounts.set(item, (entityCounts.get(item) || 0) + 1);
+    });
+
+    for (let index = 0; index < uniqueEntities.length; index += 1) {
+      for (let offset = index + 1; offset < uniqueEntities.length; offset += 1) {
+        const source = uniqueEntities[index];
+        const target = uniqueEntities[offset];
+        const pairKey = [source, target].sort((a, b) => a.localeCompare(b, "ja")).join("::");
+        pairCounts.set(pairKey, (pairCounts.get(pairKey) || 0) + 1);
+      }
+    }
   });
 
   const topEntities = [...entityCounts.entries()]
@@ -988,33 +1019,48 @@ function buildDailyNewsGraph(newsByDate, dateId) {
       }
       return a[0].localeCompare(b[0], "ja");
     })
-    .slice(0, 15)
+    .slice(0, 40)
     .map(([name, count]) => ({ name, count }));
 
-  const dateNodeId = `date:${dateId}`;
-  const nodes = [
-    {
-      id: dateNodeId,
-      label: `${formatDateId(dateId)}\n${records.length}記事`,
-      group: "date",
-      value: Math.max(28, Math.min(54, 24 + records.length / 6)),
-      title: `${formatDateId(dateId)}\n記事件数: ${records.length}\n表示キーワード数: ${topEntities.length}`
-    },
-    ...topEntities.map((item) => ({
-      id: `entity:${item.name}`,
-      label: item.name,
-      group: "entity",
-      value: Math.max(14, Math.min(38, 10 + item.count * 1.2)),
-      title: `${item.name}\n出現回数: ${item.count}\n対象日記事数: ${records.length}`
-    }))
-  ];
+  const topEntitySet = new Set(topEntities.map((item) => item.name));
+  const topPairs = [...pairCounts.entries()]
+    .map(([key, count]) => {
+      const [source, target] = key.split("::");
+      return { source, target, count };
+    })
+    .filter((pair) => topEntitySet.has(pair.source) && topEntitySet.has(pair.target) && pair.count >= 2)
+    .sort((a, b) => {
+      if (b.count !== a.count) {
+        return b.count - a.count;
+      }
+      return `${a.source}:${a.target}`.localeCompare(`${b.source}:${b.target}`, "ja");
+    });
 
-  const edges = topEntities.map((item) => ({
-    id: `${dateNodeId}->entity:${item.name}`,
-    from: dateNodeId,
-    to: `entity:${item.name}`,
-    value: item.count,
-    width: Math.max(1.5, Math.min(7, 1 + item.count / 4))
+  const connectionCounts = new Map();
+  topPairs.forEach((pair) => {
+    connectionCounts.set(pair.source, (connectionCounts.get(pair.source) || 0) + 1);
+    connectionCounts.set(pair.target, (connectionCounts.get(pair.target) || 0) + 1);
+  });
+
+  const nodes = topEntities.map((item) => ({
+    id: `entity:${item.name}`,
+    label: item.name,
+    group: "entity",
+    value: Math.max(12, Math.min(44, 10 + item.count * 1.25)),
+    title:
+      `${item.name}\n` +
+      `出現記事数: ${item.count}\n` +
+      `接続ペア数: ${connectionCounts.get(item.name) || 0}\n` +
+      `対象日記事数: ${records.length}`
+  }));
+
+  const edges = topPairs.map((pair) => ({
+    id: `entity:${pair.source}->entity:${pair.target}`,
+    from: `entity:${pair.source}`,
+    to: `entity:${pair.target}`,
+    value: pair.count,
+    width: Math.max(1.4, Math.min(8, 0.8 + pair.count * 0.75)),
+    title: `${pair.source} × ${pair.target}\n共起記事数: ${pair.count}`
   }));
 
   return {
@@ -1022,7 +1068,8 @@ function buildDailyNewsGraph(newsByDate, dateId) {
     articleCount: records.length,
     nodes,
     edges,
-    topEntities
+    topEntities,
+    topPairs
   };
 }
 

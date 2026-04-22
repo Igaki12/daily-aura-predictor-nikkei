@@ -1128,44 +1128,62 @@ function pickTopCountKey(counter) {
 }
 
 function buildEntityColor(subject, subjectMatter) {
-  const subjectHue = getSubjectHue(subject);
-  const matterOffset = ((hashString(subjectMatter || subject || "default") % 7) - 3) * 5;
-  const hue = (subjectHue + matterOffset + 360) % 360;
-  const saturation = 46 + (hashString(subjectMatter || "matter") % 10);
-  const backgroundLightness = 86 + (hashString(subject || "subject") % 4);
-  const borderLightness = 60 + (hashString(subjectMatter || subject || "border") % 6);
+  const code = subjectMatter ? `${subject || "none"}:${subjectMatter}` : subject || "";
+  const background = colorForSubjectCode(code);
+  const border = borderForColor(background);
 
   return {
-    background: `hsl(${hue} ${saturation}% ${backgroundLightness}%)`,
-    border: `hsl(${hue} ${Math.min(saturation + 12, 72)}% ${borderLightness}%)`,
+    background,
+    border,
     highlight: {
-      background: `hsl(${hue} ${Math.min(saturation + 6, 68)}% ${Math.max(backgroundLightness - 4, 80)}%)`,
-      border: `hsl(${hue} ${Math.min(saturation + 14, 76)}% ${Math.max(borderLightness - 6, 50)}%)`
+      background,
+      border
     }
   };
 }
 
-function getSubjectHue(subject) {
-  const presetHues = {
-    "03000000": 205,
-    "11000000": 12,
-    "15000000": 132,
-    "16000000": 28,
-    "17000000": 262
-  };
-  if (subject && subject in presetHues) {
-    return presetHues[subject];
+function colorForSubjectCode(code) {
+  const palette = [
+    "#f8e8e8",
+    "#fde4ec",
+    "#ffe8e0",
+    "#fff4da",
+    "#f5f2d8",
+    "#eaf7d5",
+    "#dbf1e4",
+    "#e5f6f9",
+    "#e6f0ff",
+    "#ece5ff",
+    "#efe6f5",
+    "#f7e8ef",
+    "#f0f7ff",
+    "#e8fff4",
+    "#fff0f0",
+    "#f4f9e8"
+  ];
+  if (!code) {
+    return "#f0f0f0";
   }
-  return hashString(subject || "subject") % 360;
+  const index = Math.abs(hashString(code)) % palette.length;
+  return palette[index];
 }
 
 function hashString(value) {
   const input = String(value || "");
   let hash = 0;
   for (let index = 0; index < input.length; index += 1) {
-    hash = (hash * 31 + input.charCodeAt(index)) % 2147483647;
+    hash = Math.imul(31, hash) + input.charCodeAt(index);
   }
   return hash;
+}
+
+function borderForColor(background) {
+  const red = parseInt(background.slice(1, 3), 16);
+  const green = parseInt(background.slice(3, 5), 16);
+  const blue = parseInt(background.slice(5, 7), 16);
+  const factor = 0.82;
+  const toHex = (value) => Math.floor(value * factor).toString(16).padStart(2, "0");
+  return `#${toHex(red)}${toHex(green)}${toHex(blue)}`;
 }
 
 function PhaseCard({ number, title, badge, children, locked = false }) {

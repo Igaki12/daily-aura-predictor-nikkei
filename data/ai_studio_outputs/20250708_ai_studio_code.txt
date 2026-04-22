@@ -1,0 +1,32 @@
+{
+  "trade_date": "2025-07-08",
+  "market_regime": "トランプ米政権による関税懸念を受けたボラティリティ上昇",
+  "overall_bias": -0.4,
+  "confidence": 0.85,
+  "dimensions": {
+    "macro_tightening_pressure": 0.5,
+    "domestic_policy_uncertainty": 0.6,
+    "exporter_tailwind": -0.7,
+    "semiconductor_momentum": -0.3,
+    "consumer_strength": -0.2,
+    "inflation_concern": 0.4,
+    "yen_appreciation_pressure": 0.3,
+    "energy_supply_risk": 0.1,
+    "ai_theme_strength": 0.0,
+    "financial_sector_support": 0.0
+  },
+  "dominant_themes": [
+    "米トランプ政権による対日関税引き上げ懸念",
+    "参院選を控えた政治の不透明感",
+    "製造業の輸出環境悪化"
+  ],
+  "bullish_sectors": [
+    "特になし"
+  ],
+  "bearish_sectors": [
+    "自動車関連",
+    "電気機器",
+    "輸出関連"
+  ],
+  "short_rationale": "米国が日本製品への25%関税引き上げを表明したことで、輸出企業を中心に警戒感が広がっています。また、参院選を控えた政治情勢の不透明感や、熱中症患者の急増といったネガティブな材料が市場心理の重石となっています。"
+}

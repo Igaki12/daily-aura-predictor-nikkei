@@ -1,0 +1,32 @@
+{
+  "trade_date": "2025-06-28",
+  "market_regime": "慎重なもみ合い",
+  "overall_bias": 0.05,
+  "confidence": 0.7,
+  "dimensions": {
+    "macro_tightening_pressure": 0.1,
+    "domestic_policy_uncertainty": 0.2,
+    "exporter_tailwind": 0.1,
+    "semiconductor_momentum": 0.0,
+    "consumer_strength": 0.1,
+    "inflation_concern": 0.2,
+    "yen_appreciation_pressure": 0.1,
+    "energy_supply_risk": 0.3,
+    "ai_theme_strength": 0.0,
+    "financial_sector_support": 0.0
+  },
+  "dominant_themes": [
+    "米関税政策を巡る貿易協議",
+    "インフレ警戒感の後退",
+    "中東地政学リスクの継続"
+  ],
+  "bullish_sectors": [
+    "ハイテク",
+    "小売"
+  ],
+  "bearish_sectors": [
+    "エネルギー",
+    "インフラ関連"
+  ],
+  "short_rationale": "前日のNY市場でインフレ懸念後退から主要指数が続伸したことは日本株の追い風となった一方、米国の対カナダ貿易協議打ち切りやイラン情勢を巡る地政学リスクが上値を抑える要因となっている。全体として、材料が散発的であり方向感の乏しい様子見ムードが強い。"
+}

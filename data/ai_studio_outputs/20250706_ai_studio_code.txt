@@ -1,0 +1,26 @@
+{
+  "trade_date": "2025-07-06",
+  "market_regime": "様子見",
+  "overall_bias": 0,
+  "confidence": 0.4,
+  "dimensions": {
+    "macro_tightening_pressure": 0.1,
+    "domestic_policy_uncertainty": 0.0,
+    "exporter_tailwind": 0.0,
+    "semiconductor_momentum": 0.0,
+    "consumer_strength": 0.0,
+    "inflation_concern": 0.0,
+    "yen_appreciation_pressure": 0.0,
+    "energy_supply_risk": 0.2,
+    "ai_theme_strength": 0.0,
+    "financial_sector_support": 0.0
+  },
+  "dominant_themes": [
+    "トカラ列島近海での群発地震",
+    "米南部テキサス州の洪水災害",
+    "地政学リスク（イラン・イスラエル関連）"
+  ],
+  "bullish_sectors": [],
+  "bearish_sectors": [],
+  "short_rationale": "入力ニュースの大半が自然災害や地震速報などの突発的かつ市場との関連性が薄いトピックで占められており、市場センチメントを方向付けるような経済材料が見当たらないため、市場全体は様子見ムードが強い。"
+}

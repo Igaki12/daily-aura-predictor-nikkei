@@ -1,0 +1,30 @@
+{
+  "trade_date": "2025-07-01",
+  "market_regime": "様子見",
+  "overall_bias": 0.0,
+  "confidence": 0.4,
+  "dimensions": {
+    "macro_tightening_pressure": 0.0,
+    "domestic_policy_uncertainty": 0.2,
+    "exporter_tailwind": 0.0,
+    "semiconductor_momentum": 0.0,
+    "consumer_strength": -0.2,
+    "inflation_concern": 0.1,
+    "yen_appreciation_pressure": 0.3,
+    "energy_supply_risk": 0.1,
+    "ai_theme_strength": 0.0,
+    "financial_sector_support": 0.0
+  },
+  "dominant_themes": [
+    "トカラ列島近海での地震多発",
+    "消費者の節約志向と企業景況感の悪化",
+    "為替の円高傾向",
+    "日航機緊急着陸"
+  ],
+  "bullish_sectors": [],
+  "bearish_sectors": [
+    "小売・消費関連",
+    "航空・運輸"
+  ],
+  "short_rationale": "為替の円高進行や消費の冷え込みが意識される一方、トカラ列島での頻発する地震や航空機のトラブルが心理的なノイズとなっており、市場は全体として方向感に欠ける様子見ムードとなっている。"
+}

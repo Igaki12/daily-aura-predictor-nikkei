@@ -1,0 +1,33 @@
+{
+  "trade_date": "2025-07-03",
+  "market_regime": "参院選公示、為替変動と地政学リスクへの警戒",
+  "overall_bias": -0.2,
+  "confidence": 0.75,
+  "dimensions": {
+    "macro_tightening_pressure": 0.3,
+    "domestic_policy_uncertainty": 0.5,
+    "exporter_tailwind": -0.3,
+    "semiconductor_momentum": 0.0,
+    "consumer_strength": -0.2,
+    "inflation_concern": 0.4,
+    "yen_appreciation_pressure": 0.4,
+    "energy_supply_risk": 0.2,
+    "ai_theme_strength": 0.1,
+    "financial_sector_support": 0.0
+  },
+  "dominant_themes": [
+    "第27回参院選公示",
+    "日米貿易交渉の難航",
+    "為替の円高基調",
+    "地政学リスク（ウクライナ情勢）"
+  ],
+  "bullish_sectors": [
+    "防衛関連",
+    "通信インフラ"
+  ],
+  "bearish_sectors": [
+    "自動車",
+    "輸出関連"
+  ],
+  "short_rationale": "参院選公示を受け、与野党の激しい政策論戦がスタートしました。日米貿易交渉の膠着や円高進行への警戒感から市場心理は慎重です。米ロ首脳会談や地政学リスクの再燃も重なり、全体として上値が重い展開を意識した投資家心理となっています。"
+}

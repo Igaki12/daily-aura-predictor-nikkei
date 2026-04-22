@@ -1,0 +1,32 @@
+{
+  "trade_date": "2025-06-25",
+  "market_regime": "様子見",
+  "overall_bias": 0.1,
+  "confidence": 0.7,
+  "dimensions": {
+    "macro_tightening_pressure": 0.2,
+    "domestic_policy_uncertainty": 0.3,
+    "exporter_tailwind": 0.1,
+    "semiconductor_momentum": 0.3,
+    "consumer_strength": -0.1,
+    "inflation_concern": 0.2,
+    "yen_appreciation_pressure": 0.2,
+    "energy_supply_risk": -0.4,
+    "ai_theme_strength": 0.0,
+    "financial_sector_support": 0.1
+  },
+  "dominant_themes": [
+    "中東情勢の緊張緩和によるリスク回避の後退",
+    "米国高関税措置の影響に対する警戒",
+    "国内政治の不透明感",
+    "日銀の国債購入減額への慎重姿勢"
+  ],
+  "bullish_sectors": [
+    "半導体関連",
+    "輸出関連"
+  ],
+  "bearish_sectors": [
+    "自動車"
+  ],
+  "short_rationale": "中東情勢の緊張緩和を受けて投資家心理が改善し、ＮＹ株高や原油価格下落がポジティブな材料として意識された。一方で、米国発の関税懸念や国内政治への不透明感から上値は重く、市場全体は方向感の乏しい展開となった。"
+}

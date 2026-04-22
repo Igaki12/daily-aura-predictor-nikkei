@@ -1,0 +1,33 @@
+{
+  "trade_date": "2025-06-24",
+  "market_regime": "中東情勢の沈静化期待による安心感と自律反発",
+  "overall_bias": 0.4,
+  "confidence": 0.85,
+  "dimensions": {
+    "macro_tightening_pressure": 0.3,
+    "domestic_policy_uncertainty": 0.1,
+    "exporter_tailwind": 0.3,
+    "semiconductor_momentum": 0.2,
+    "consumer_strength": 0.0,
+    "inflation_concern": 0.2,
+    "yen_appreciation_pressure": -0.4,
+    "energy_supply_risk": -0.5,
+    "ai_theme_strength": 0.2,
+    "financial_sector_support": 0.4
+  },
+  "dominant_themes": [
+    "中東情勢の停戦合意",
+    "原油価格の下落",
+    "FRBの早期利下げ慎重姿勢",
+    "日本株の自律反発"
+  ],
+  "bullish_sectors": [
+    "銀行",
+    "電機",
+    "自動車"
+  ],
+  "bearish_sectors": [
+    "石油・石炭製品"
+  ],
+  "short_rationale": "中東情勢の緊迫化懸念が停戦合意の報により急速に後退し、リスクオンムードが強まりました。原油価格の急落や為替の安定も相場を押し上げ、日経平均は大幅反発となりました。ただし、FRBの利下げ慎重姿勢が上値を抑える要因として残っています。"
+}

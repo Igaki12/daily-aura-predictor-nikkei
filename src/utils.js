@@ -8,20 +8,11 @@ export const STORAGE_KEYS = {
   prediction: "prediction_result",
 };
 
-export const DEMO_TARGET_DATES = ["20250624", "20250625", "20250626"];
-
-export const SIMILARITY_NEWS_MARKET_OVERLAP_DATES = [
-  "20250623",
-  "20250624",
-  "20250625",
-  "20250626",
-  "20250627"
-];
-
 const baseUrl = import.meta.env.BASE_URL || "./";
 
 export const REPO_SAMPLE_PATHS = {
   news: `${baseUrl}news_full_mcq3_type9_entities_novectors.jsonl`,
+  newsInputsManifest: `${baseUrl}news_inputs/manifest.json`,
   market: `${baseUrl}market_data/2025-06-22_2025-06-28/market_data_all.csv`,
   fetchReport: `${baseUrl}market_data/2025-06-22_2025-06-28/fetch_report.json`,
   precomputedSentiments: `${baseUrl}precomputed/daily_sentiment_representations.json`,

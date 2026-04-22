@@ -1,0 +1,31 @@
+{
+  "trade_date": "2025-07-02",
+  "market_regime": "様子見",
+  "overall_bias": -0.1,
+  "confidence": 0.7,
+  "dimensions": {
+    "macro_tightening_pressure": 0.3,
+    "domestic_policy_uncertainty": 0.5,
+    "exporter_tailwind": -0.4,
+    "semiconductor_momentum": 0.0,
+    "consumer_strength": 0.1,
+    "inflation_concern": 0.3,
+    "yen_appreciation_pressure": 0.2,
+    "energy_supply_risk": 0.1,
+    "ai_theme_strength": 0.0,
+    "financial_sector_support": 0.0
+  },
+  "dominant_themes": [
+    "日銀の追加利上げ判断に関する慎重姿勢",
+    "米関税政策への懸念",
+    "参院選に伴う経済対策の行方"
+  ],
+  "bullish_sectors": [
+    "消費関連"
+  ],
+  "bearish_sectors": [
+    "自動車",
+    "輸出関連"
+  ],
+  "short_rationale": "日銀総裁が追加利上げに慎重な姿勢を示した一方、トランプ米政権による関税政策への警戒感が輸出関連株の重しとなっている。参院選に向けた経済対策への期待はあるものの、全体としては市場の方向感は乏しい。"
+}

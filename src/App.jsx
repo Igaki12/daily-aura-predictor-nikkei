@@ -2,8 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import {
   STORAGE_KEYS,
   REPO_SAMPLE_PATHS,
-  DEMO_TARGET_DATES,
-  SIMILARITY_NEWS_MARKET_OVERLAP_DATES,
   loadJson,
   saveJson,
   parseJsonl,
@@ -26,6 +24,7 @@ import Phase2NewsNetwork from "./components/Phase2NewsNetwork";
 
 const MARKET_LOOKBACK_DAYS = 5;
 const DEFAULT_TICKER = "^N225";
+const DEFAULT_SELECTED_DATE = "20250624";
 
 const initialPipelineState = {
   dataReady: false,
@@ -34,7 +33,7 @@ const initialPipelineState = {
   entitiesConfirmed: false,
   marketConfirmed: false,
   predictionReady: false,
-  selectedDate: DEMO_TARGET_DATES[0],
+  selectedDate: DEFAULT_SELECTED_DATE,
   selectedTicker: DEFAULT_TICKER
 };
 
@@ -75,12 +74,14 @@ function App() {
       try {
         const [
           newsResponse,
+          manifestResponse,
           marketResponse,
           reportResponse,
           sentimentResponse,
           entityResponse
         ] = await Promise.all([
           fetch(REPO_SAMPLE_PATHS.news),
+          fetch(REPO_SAMPLE_PATHS.newsInputsManifest),
           fetch(REPO_SAMPLE_PATHS.market),
           fetch(REPO_SAMPLE_PATHS.fetchReport),
           fetch(REPO_SAMPLE_PATHS.precomputedSentiments),
@@ -89,6 +90,7 @@ function App() {
 
         const failedResponse = [
           newsResponse,
+          manifestResponse,
           marketResponse,
           reportResponse,
           sentimentResponse,
@@ -99,20 +101,40 @@ function App() {
           throw new Error(`HTTP ${failedResponse.status}`);
         }
 
-        const [newsText, marketText, fetchReport, rawSentiments, rawEntities] = await Promise.all([
+        const [newsText, newsManifest, marketText, fetchReport, rawSentiments, rawEntities] = await Promise.all([
           newsResponse.text(),
+          manifestResponse.json(),
           marketResponse.text(),
           reportResponse.json(),
           sentimentResponse.json(),
           entityResponse.json()
         ]);
 
-        const records = parseJsonl(newsText).map(normalizeNewsRecord);
+        const additionalNewsResponses = await Promise.all(
+          (newsManifest || []).map((entry) => fetch(new URL(`${import.meta.env.BASE_URL || "./"}${entry.path}`, window.location.href).href))
+        );
+        const failedAdditional = additionalNewsResponses.find((response) => !response.ok);
+        if (failedAdditional) {
+          throw new Error(`HTTP ${failedAdditional.status}`);
+        }
+        const additionalNewsTexts = await Promise.all(additionalNewsResponses.map((response) => response.text()));
+
+        const records = [
+          ...parseJsonl(newsText).map(normalizeNewsRecord),
+          ...additionalNewsTexts.flatMap((text) => parseJsonl(text).map(normalizeNewsRecord))
+        ];
         const byDate = buildNewsByDate(records);
         const rows = parseCsv(marketText);
         const normalizedSentiments = normalizePrecomputedSentiments(rawSentiments);
         const normalizedEntities = normalizePrecomputedEntities(rawEntities);
         const tickers = [...new Set(rows.map((row) => row.ticker))];
+        const initialDateIds = buildAvailableTargetDateIds(
+          byDate,
+          normalizedSentiments,
+          normalizedEntities,
+          rows,
+          tickers[0] || DEFAULT_TICKER
+        );
 
         if (!active) {
           return;
@@ -126,7 +148,7 @@ function App() {
         setPipeline((current) => ({
           ...initialPipelineState,
           ...current,
-          selectedDate: DEMO_TARGET_DATES.includes(current.selectedDate) ? current.selectedDate : DEMO_TARGET_DATES[0],
+          selectedDate: initialDateIds.includes(current.selectedDate) ? current.selectedDate : initialDateIds[0] || DEFAULT_SELECTED_DATE,
           selectedTicker: tickers.includes(current.selectedTicker) ? current.selectedTicker : tickers[0] || DEFAULT_TICKER
         }));
         setLoadState({
@@ -134,7 +156,8 @@ function App() {
           text: "準備完了",
           detail:
             `ニュース: ${records.length}件\n` +
-            `対象日候補: ${DEMO_TARGET_DATES.map(formatDateId).join(", ")}\n` +
+            `追加入力ファイル: ${additionalNewsTexts.length}件\n` +
+            `対象日候補: ${initialDateIds.map(formatDateId).join(", ") || "なし"}\n` +
             `市場データ: ${rows.length}行\n` +
             `事前生成センチメント: ${Object.keys(normalizedSentiments).length}日分\n` +
             `事前生成キーワード: ${Object.keys(normalizedEntities).length}日分`
@@ -177,9 +200,23 @@ function App() {
     }
   }, [prediction]);
 
-  const selectedDate = DEMO_TARGET_DATES.includes(pipeline.selectedDate)
+  const marketRows = marketData.rows || [];
+  const tickers = [...new Set(marketRows.map((row) => row.ticker))];
+  const selectedTicker = tickers.includes(pipeline.selectedTicker) ? pipeline.selectedTicker : tickers[0] || DEFAULT_TICKER;
+  const selectedTickerRows = marketRows
+    .filter((row) => row.ticker === selectedTicker)
+    .sort((a, b) => a.trade_date.localeCompare(b.trade_date));
+
+  const availableTargetDateIds = buildAvailableTargetDateIds(
+    newsByDate,
+    precomputedSentiments,
+    precomputedEntities,
+    marketRows,
+    selectedTicker
+  );
+  const selectedDate = availableTargetDateIds.includes(pipeline.selectedDate)
     ? pipeline.selectedDate
-    : DEMO_TARGET_DATES[0];
+    : availableTargetDateIds[0] || DEFAULT_SELECTED_DATE;
   const selectedTradeDate = formatDateId(selectedDate);
   const selectedRecords = newsByDate[selectedDate] || [];
   const selectedNewsAggregate = buildNewsAggregate(selectedRecords);
@@ -189,23 +226,10 @@ function App() {
     .slice(0, 8);
   const selectedNewsGraph = buildDailyNewsGraph(newsByDate, selectedDate);
 
-  const marketRows = marketData.rows || [];
-  const tickers = [...new Set(marketRows.map((row) => row.ticker))];
-  const selectedTicker = tickers.includes(pipeline.selectedTicker) ? pipeline.selectedTicker : tickers[0] || DEFAULT_TICKER;
-  const selectedTickerRows = marketRows
-    .filter((row) => row.ticker === selectedTicker)
-    .sort((a, b) => a.trade_date.localeCompare(b.trade_date));
-
   const selectedPrecomputedSentiment = precomputedSentiments[selectedDate] || null;
   const selectedPrecomputedEntities = precomputedEntities[selectedDate] || null;
 
-  const candidateDateIds = SIMILARITY_NEWS_MARKET_OVERLAP_DATES.filter((dateId) => (
-    dateId !== selectedDate
-    && Boolean(newsByDate[dateId]?.length)
-    && Boolean(precomputedSentiments[dateId])
-    && Boolean(precomputedEntities[dateId])
-    && selectedTickerRows.some((row) => row.trade_date === formatDateId(dateId))
-  ));
+  const candidateDateIds = availableTargetDateIds.filter((dateId) => dateId !== selectedDate);
 
   const summaryItems = [
     { label: "Data", value: loadState.kind === "ready" ? "準備済み" : loadState.text },
@@ -368,7 +392,7 @@ function App() {
     setEntities({});
     setPipeline({
       ...initialPipelineState,
-      selectedDate: DEMO_TARGET_DATES[0],
+      selectedDate: availableTargetDateIds[0] || DEFAULT_SELECTED_DATE,
       selectedTicker
     });
   }
@@ -517,9 +541,7 @@ function App() {
           <h1>事前生成データで翌営業日の相場傾向を追うデモ</h1>
           <p className="hero-text">
             GitHub Pages 向けの静的フロントエンドとして、同梱済みニュース JSONL・市場データ CSV・事前生成結果 JSON を順番に確認しながら、
-            予測表示まで辿るデモ版です。対象日のニュースは
-            <code> 2025-06-24 / 2025-06-25 / 2025-06-26 </code>
-            に限定しています。
+            予測表示まで辿るデモ版です。対象日は、入力ニュース・事前生成センチメント・市場データが揃っている営業日から自動で候補化されます。
           </p>
           <div className="hero-actions">
             <button className="button primary" onClick={() => pdfDialogRef.current?.showModal()}>
@@ -562,7 +584,7 @@ function App() {
 
         <PhaseCard number="Phase 2" title="対象日ニュース選択" badge={phaseStatus.news} locked={!pipeline.dataReady}>
           <p className="phase-text">
-            対象日のニュースはデモ用に 3 日へ限定しています。選んだ日付のニュース件数、見出し、注目キーワードグラフを確認して次へ進みます。
+            選択できるのは、入力ニュース・事前生成センチメント・市場データが揃っていて予測まで進められる営業日のみです。選んだ日付のニュース件数、見出し、注目キーワードグラフを確認して次へ進みます。
           </p>
           <div className="field-grid">
             <label className="field">
@@ -572,7 +594,7 @@ function App() {
                 onChange={(event) => resetAfterDateSelection(event.target.value)}
                 disabled={!pipeline.dataReady}
               >
-                {DEMO_TARGET_DATES.map((dateId) => (
+                {availableTargetDateIds.map((dateId) => (
                   <option key={dateId} value={dateId}>{formatDateId(dateId)}</option>
                 ))}
               </select>
@@ -647,7 +669,7 @@ function App() {
 
         <PhaseCard number="Phase 4" title="注目キーワード表示" badge={phaseStatus.entity} locked={!pipeline.sentimentConfirmed}>
           <p className="phase-text">
-            選択日の注目キーワード結果も事前生成済みです。キーワード集合を確認してから市場データ確認へ進みます。
+            選択日の注目キーワード結果を表示します。既存の事前生成結果に加えて、新しい入力ニュースについても表示できるように反映しています。
           </p>
           <pre className="detail-box">{entityDetail}</pre>
           <pre className="detail-box json-view">
@@ -822,6 +844,28 @@ function App() {
       </dialog>
     </div>
   );
+}
+
+function buildAvailableTargetDateIds(newsByDate, sentimentsByDate, entitiesByDate, marketRows, ticker) {
+  const tradeDates = [...new Set(
+    (marketRows || [])
+      .filter((row) => !ticker || row.ticker === ticker)
+      .map((row) => row.trade_date)
+  )].sort();
+
+  return Object.keys(newsByDate || {})
+    .filter((dateId) => {
+      const tradeDate = formatDateId(dateId);
+      const currentIndex = tradeDates.indexOf(tradeDate);
+      return (
+        Boolean(newsByDate[dateId]?.length)
+        && Boolean(sentimentsByDate[dateId])
+        && Boolean(entitiesByDate[dateId])
+        && currentIndex >= 0
+        && currentIndex < tradeDates.length - 1
+      );
+    })
+    .sort((a, b) => a.localeCompare(b));
 }
 
 function normalizePrecomputedSentiments(payload) {

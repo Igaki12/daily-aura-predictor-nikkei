@@ -1,0 +1,32 @@
+{
+  "trade_date": "2025-07-04",
+  "market_regime": "リスクオフ寄り、円高進行による輸出関連の重し",
+  "overall_bias": -0.3,
+  "confidence": 0.8,
+  "dimensions": {
+    "macro_tightening_pressure": 0.2,
+    "domestic_policy_uncertainty": 0.4,
+    "exporter_tailwind": -0.5,
+    "semiconductor_momentum": 0.1,
+    "consumer_strength": 0.3,
+    "inflation_concern": 0.2,
+    "yen_appreciation_pressure": 0.6,
+    "energy_supply_risk": 0.3,
+    "ai_theme_strength": 0.2,
+    "financial_sector_support": 0.0
+  },
+  "dominant_themes": [
+    "為替相場の円高進行",
+    "個人投資家の増加とNISAの普及",
+    "米雇用統計を受けた市場心理の変化"
+  ],
+  "bullish_sectors": [
+    "小売・消費関連",
+    "自動車関連"
+  ],
+  "bearish_sectors": [
+    "輸出関連全般",
+    "機械・電機セクター"
+  ],
+  "short_rationale": "為替相場において円高が進行し、輸出関連株にとって逆風となった。一方で個人の株式保有動向や消費支出のプラス成長など、国内需要の堅調さが市場の底堅さを支える展開。"
+}

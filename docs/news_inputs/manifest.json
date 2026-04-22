@@ -1,0 +1,62 @@
+[
+  {
+    "file": "kyodo_round2_quizapp_2025_fullyear_mcq3_type9_entities_20250701.jsonl",
+    "path": "news_inputs/kyodo_round2_quizapp_2025_fullyear_mcq3_type9_entities_20250701.jsonl",
+    "date_id": "20250701",
+    "record_count": 452
+  },
+  {
+    "file": "kyodo_round2_quizapp_2025_fullyear_mcq3_type9_entities_20250702.jsonl",
+    "path": "news_inputs/kyodo_round2_quizapp_2025_fullyear_mcq3_type9_entities_20250702.jsonl",
+    "date_id": "20250702",
+    "record_count": 453
+  },
+  {
+    "file": "kyodo_round2_quizapp_2025_fullyear_mcq3_type9_entities_20250703.jsonl",
+    "path": "news_inputs/kyodo_round2_quizapp_2025_fullyear_mcq3_type9_entities_20250703.jsonl",
+    "date_id": "20250703",
+    "record_count": 470
+  },
+  {
+    "file": "kyodo_round2_quizapp_2025_fullyear_mcq3_type9_entities_20250704.jsonl",
+    "path": "news_inputs/kyodo_round2_quizapp_2025_fullyear_mcq3_type9_entities_20250704.jsonl",
+    "date_id": "20250704",
+    "record_count": 416
+  },
+  {
+    "file": "kyodo_round2_quizapp_2025_fullyear_mcq3_type9_entities_20250705.jsonl",
+    "path": "news_inputs/kyodo_round2_quizapp_2025_fullyear_mcq3_type9_entities_20250705.jsonl",
+    "date_id": "20250705",
+    "record_count": 346
+  },
+  {
+    "file": "kyodo_round2_quizapp_2025_fullyear_mcq3_type9_entities_20250706.jsonl",
+    "path": "news_inputs/kyodo_round2_quizapp_2025_fullyear_mcq3_type9_entities_20250706.jsonl",
+    "date_id": "20250706",
+    "record_count": 353
+  },
+  {
+    "file": "kyodo_round2_quizapp_2025_fullyear_mcq3_type9_entities_20250707.jsonl",
+    "path": "news_inputs/kyodo_round2_quizapp_2025_fullyear_mcq3_type9_entities_20250707.jsonl",
+    "date_id": "20250707",
+    "record_count": 302
+  },
+  {
+    "file": "kyodo_round2_quizapp_2025_fullyear_mcq3_type9_entities_20250708.jsonl",
+    "path": "news_inputs/kyodo_round2_quizapp_2025_fullyear_mcq3_type9_entities_20250708.jsonl",
+    "date_id": "20250708",
+    "record_count": 371
+  },
+  {
+    "file": "kyodo_round2_quizapp_2025_fullyear_mcq3_type9_entities_20250709.jsonl",
+    "path": "news_inputs/kyodo_round2_quizapp_2025_fullyear_mcq3_type9_entities_20250709.jsonl",
+    "date_id": "20250709",
+    "record_count": 317
+  },
+  {
+    "file": "kyodo_round2_quizapp_2025_fullyear_mcq3_type9_entities_20250710.jsonl",
+    "path": "news_inputs/kyodo_round2_quizapp_2025_fullyear_mcq3_type9_entities_20250710.jsonl",
+    "date_id": "20250710",
+    "record_count": 356
+  }
+]

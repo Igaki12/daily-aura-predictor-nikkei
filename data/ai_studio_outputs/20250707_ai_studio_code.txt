@@ -1,0 +1,29 @@
+{
+  "trade_date": "2025-07-07",
+  "market_regime": "様子見",
+  "overall_bias": 0.0,
+  "confidence": 0.6,
+  "dimensions": {
+    "macro_tightening_pressure": 0.0,
+    "domestic_policy_uncertainty": 0.1,
+    "exporter_tailwind": -0.2,
+    "semiconductor_momentum": 0.0,
+    "consumer_strength": 0.0,
+    "inflation_concern": 0.2,
+    "yen_appreciation_pressure": 0.4,
+    "energy_supply_risk": 0.1,
+    "ai_theme_strength": 0.0,
+    "financial_sector_support": 0.0
+  },
+  "dominant_themes": [
+    "円高進行による輸出関連への重石",
+    "景気動向指数悪化",
+    "企業不祥事と地政学リスク"
+  ],
+  "bullish_sectors": [],
+  "bearish_sectors": [
+    "輸出関連セクター",
+    "自動車セクター"
+  ],
+  "short_rationale": "為替の円高進行が輸出企業の重石となり、5月の景気動向指数が悪化へ転じたことがセンチメントを冷やした。日産自動車の工場売却検討や一部企業の不祥事など、個別企業の材料も多く、市場は慎重な様子見姿勢が強まっている。"
+}

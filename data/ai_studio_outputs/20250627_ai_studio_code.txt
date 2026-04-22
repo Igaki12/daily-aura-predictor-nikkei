@@ -1,0 +1,34 @@
+{
+  "trade_date": "2025-06-27",
+  "market_regime": "慎重なもみ合い",
+  "overall_bias": 0.1,
+  "confidence": 0.8,
+  "dimensions": {
+    "macro_tightening_pressure": 0.2,
+    "domestic_policy_uncertainty": 0.3,
+    "exporter_tailwind": 0.1,
+    "semiconductor_momentum": 0.2,
+    "consumer_strength": -0.1,
+    "inflation_concern": 0.3,
+    "yen_appreciation_pressure": -0.2,
+    "energy_supply_risk": 0.0,
+    "ai_theme_strength": 0.1,
+    "financial_sector_support": 0.1
+  },
+  "dominant_themes": [
+    "米関税政策の先行き不透明感",
+    "日銀の追加利上げに対する観測",
+    "企業統治と株主総会シーズン",
+    "国内の少子高齢化・インフラ整備"
+  ],
+  "bullish_sectors": [
+    "自動車",
+    "機械",
+    "半導体関連"
+  ],
+  "bearish_sectors": [
+    "外食",
+    "小売"
+  ],
+  "short_rationale": "米国が導入する相互関税の一時停止期間の延長期待が買い材料となり、東京市場は一時節目の4万円を回復した。一方で、東京区部の消費者物価上昇率の鈍化により日銀の追加利上げ観測が後退したことも、円安ドル高を誘発し株価を下支えした。国内では生活保護減額違法判決や少子高齢化対策などの政策議論が続く中、投資家は慎重な姿勢を崩していない。"
+}

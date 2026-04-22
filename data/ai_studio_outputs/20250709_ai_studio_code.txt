@@ -1,0 +1,25 @@
+{
+  "trade_date": "2025-07-09",
+  "market_regime": "様子見",
+  "overall_bias": 0.0,
+  "confidence": 0.3,
+  "dimensions": {
+    "macro_tightening_pressure": 0.0,
+    "domestic_policy_uncertainty": 0.0,
+    "exporter_tailwind": 0.0,
+    "semiconductor_momentum": 0.0,
+    "consumer_strength": 0.0,
+    "inflation_concern": 0.0,
+    "yen_appreciation_pressure": 0.0,
+    "energy_supply_risk": 0.0,
+    "ai_theme_strength": 0.0,
+    "financial_sector_support": 0.0
+  },
+  "dominant_themes": [
+    "日本株市場に関する主要な経済ニュースの欠如",
+    "地震および季節性の話題"
+  ],
+  "bullish_sectors": [],
+  "bearish_sectors": [],
+  "short_rationale": "市場に影響を与える経済ニュースや材料が見当たらず、トカラ列島近海での群発地震や気象情報、スポーツ関連の話題が中心となっている。市場心理を動かす特段の要因が欠如しており、方向感が定まらない一日。"
+}

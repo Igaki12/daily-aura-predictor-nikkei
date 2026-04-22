@@ -1,162 +1,500 @@
 {
-  "20250623": {
-    "trade_date": "2025-06-23",
-    "market_regime": "リスクオフ寄り",
-    "overall_bias": -0.38,
-    "confidence": 0.74,
+  "20250622": {
+    "trade_date": "2025-06-22",
+    "market_regime": "イベント主導の慎重なもみ合い",
+    "overall_bias": -0.3,
+    "confidence": 0.8,
     "dimensions": {
-      "macro_tightening_pressure": 0.58,
-      "domestic_policy_uncertainty": 0.16,
-      "exporter_tailwind": -0.18,
-      "semiconductor_momentum": -0.21,
-      "consumer_strength": -0.06,
-      "inflation_concern": 0.54,
-      "yen_appreciation_pressure": 0.31,
-      "energy_supply_risk": 0.72,
-      "ai_theme_strength": 0.04,
-      "financial_sector_support": 0.08
+      "macro_tightening_pressure": 0.2,
+      "domestic_policy_uncertainty": 0.5,
+      "exporter_tailwind": -0.4,
+      "semiconductor_momentum": 0,
+      "consumer_strength": -0.2,
+      "inflation_concern": 0.3,
+      "yen_appreciation_pressure": 0.4,
+      "energy_supply_risk": 0.7,
+      "ai_theme_strength": 0,
+      "financial_sector_support": 0
     },
     "dominant_themes": [
-      "中東情勢",
-      "原油上昇",
-      "地震観測"
+      "イラン核施設への米軍攻撃と中東情勢の緊迫化",
+      "東京都議選の結果と国内政治への影響",
+      "東京都議選による与党の苦戦"
     ],
     "bullish_sectors": [
-      "エネルギー",
-      "内需ディフェンシブ"
+      "防衛関連",
+      "エネルギー関連"
     ],
     "bearish_sectors": [
-      "輸出関連",
-      "半導体"
+      "小売・消費関連",
+      "全般的な景気敏感株"
     ],
-    "short_rationale": "中東情勢の緊張と原油上昇がリスク回避を促し、同時に地震関連ニュースが多く市場心理を重くした。輸出関連とハイテクはやや逆風で、内需ディフェンシブへの逃避が見えやすい。"
+    "short_rationale": "イラン核施設への米軍攻撃に伴う中東情勢の急激な悪化が、エネルギー供給リスクや市場全体の不透明感を高めています。また、東京都議選での自民党の大敗が国内政治の不透明感を強めており、投資家心理は慎重な姿勢に傾いています。"
+  },
+  "20250623": {
+    "response": "[{\"trade_date\": \"2025-06-23\", \"overall_bias\": -0.4, \"confidence\": 0.9, \"dimensions\": {\"macro_tightening_pressure\": 0.3, \"domestic_policy_uncertainty\": 0.4, \"exporter_tailwind\": -0.2, \"semiconductor_momentum\": -0.3, \"consumer_strength\": -0.3, \"inflation_concern\": 0.7, \"yen_appreciation_pressure\": -0.5, \"energy_supply_risk\": 0.9, \"ai_theme_strength\": 0.2, \"financial_sector_support\": 0.1}, \"dominant_themes\": [\"中東情勢緊迫化による原油価格急騰\", \"米国の対イラン軍事攻撃\", \"自民党の大敗と政治的不透明感\"], \"bullish_sectors\": [\"鉱業\", \"エネルギー\"], \"bearish_sectors\": [\"輸送用機器\", \"電気機器\", \"半導体製造装置\"], \"short_rationale\": \"米軍によるイラン核施設攻撃を受けて中東の供給不安が急激に高まり、原油先物価格の急騰が市場の重石となりました。また、東京都議選での自民党大敗という政治的リスクや、地政学リスクを背景とした円安進行に伴う輸入コスト増への懸念が投資家心理を冷やしています。\", \"market_regime\": \"リスク回避・警戒感の台頭\"}]"
   },
   "20250624": {
     "trade_date": "2025-06-24",
-    "market_regime": "イベント主導の弱気",
-    "overall_bias": -0.31,
-    "confidence": 0.77,
+    "market_regime": "中東情勢の沈静化期待による安心感と自律反発",
+    "overall_bias": 0.4,
+    "confidence": 0.85,
     "dimensions": {
-      "macro_tightening_pressure": 0.62,
-      "domestic_policy_uncertainty": 0.18,
-      "exporter_tailwind": -0.24,
-      "semiconductor_momentum": -0.19,
-      "consumer_strength": -0.08,
-      "inflation_concern": 0.49,
-      "yen_appreciation_pressure": 0.28,
-      "energy_supply_risk": 0.68,
-      "ai_theme_strength": 0.03,
-      "financial_sector_support": 0.16
+      "macro_tightening_pressure": 0.3,
+      "domestic_policy_uncertainty": 0.1,
+      "exporter_tailwind": 0.3,
+      "semiconductor_momentum": 0.2,
+      "consumer_strength": 0,
+      "inflation_concern": 0.2,
+      "yen_appreciation_pressure": -0.4,
+      "energy_supply_risk": -0.5,
+      "ai_theme_strength": 0.2,
+      "financial_sector_support": 0.4
     },
     "dominant_themes": [
-      "中東報復応酬",
-      "為替警戒",
-      "金融セクター再評価"
+      "中東情勢の停戦合意",
+      "原油価格の下落",
+      "FRBの早期利下げ慎重姿勢",
+      "日本株の自律反発"
     ],
     "bullish_sectors": [
       "銀行",
-      "内需ディフェンシブ"
+      "電機",
+      "自動車"
     ],
     "bearish_sectors": [
-      "輸出関連",
-      "半導体"
+      "石油・石炭製品"
     ],
-    "short_rationale": "米軍基地への報復攻撃や為替関連ニュースが重なり、外部イベント主導の警戒感が続いた。一方で金融セクターには資本政策の明るさもあり、全面安ではなく選別色の強い地合いとみなせる。"
+    "short_rationale": "中東情勢の緊迫化懸念が停戦合意の報により急速に後退し、リスクオンムードが強まりました。原油価格の急落や為替の安定も相場を押し上げ、日経平均は大幅反発となりました。ただし、FRBの利下げ慎重姿勢が上値を抑える要因として残っています。"
   },
   "20250625": {
     "trade_date": "2025-06-25",
-    "market_regime": "慎重なもみ合い",
-    "overall_bias": -0.12,
-    "confidence": 0.72,
+    "market_regime": "様子見",
+    "overall_bias": 0.1,
+    "confidence": 0.7,
     "dimensions": {
-      "macro_tightening_pressure": 0.45,
-      "domestic_policy_uncertainty": 0.24,
-      "exporter_tailwind": -0.11,
-      "semiconductor_momentum": -0.08,
-      "consumer_strength": 0.02,
-      "inflation_concern": 0.38,
-      "yen_appreciation_pressure": 0.22,
-      "energy_supply_risk": 0.33,
-      "ai_theme_strength": 0.06,
-      "financial_sector_support": 0.09
+      "macro_tightening_pressure": 0.2,
+      "domestic_policy_uncertainty": 0.3,
+      "exporter_tailwind": 0.1,
+      "semiconductor_momentum": 0.3,
+      "consumer_strength": -0.1,
+      "inflation_concern": 0.2,
+      "yen_appreciation_pressure": 0.2,
+      "energy_supply_risk": -0.4,
+      "ai_theme_strength": 0,
+      "financial_sector_support": 0.1
     },
     "dominant_themes": [
-      "為替推移",
-      "関税影響",
-      "地震関連継続"
+      "中東情勢の緊張緩和によるリスク回避の後退",
+      "米国高関税措置の影響に対する警戒",
+      "国内政治の不透明感",
+      "日銀の国債購入減額への慎重姿勢"
     ],
     "bullish_sectors": [
-      "通信",
-      "内需ディフェンシブ"
+      "半導体関連",
+      "輸出関連"
     ],
     "bearish_sectors": [
-      "輸出関連",
-      "景気敏感"
+      "自動車"
     ],
-    "short_rationale": "ドル円や関税影響への言及が続き、外需セクターに対する慎重姿勢が優勢だった。中東情勢の緊張はやや後退したが、強い買い材料も乏しく、全体としてはもみ合いに近い市場心理である。"
+    "short_rationale": "中東情勢の緊張緩和を受けて投資家心理が改善し、ＮＹ株高や原油価格下落がポジティブな材料として意識された。一方で、米国発の関税懸念や国内政治への不透明感から上値は重く、市場全体は方向感の乏しい展開となった。"
   },
   "20250626": {
     "trade_date": "2025-06-26",
-    "market_regime": "様子見",
-    "overall_bias": -0.08,
-    "confidence": 0.69,
+    "market_regime": "半導体主導で反発、リスクオン回復",
+    "overall_bias": 0.5,
+    "confidence": 0.8,
     "dimensions": {
-      "macro_tightening_pressure": 0.41,
-      "domestic_policy_uncertainty": 0.15,
-      "exporter_tailwind": -0.06,
-      "semiconductor_momentum": -0.14,
-      "consumer_strength": 0.04,
-      "inflation_concern": 0.26,
-      "yen_appreciation_pressure": 0.17,
-      "energy_supply_risk": 0.18,
-      "ai_theme_strength": 0.07,
-      "financial_sector_support": 0.05
+      "macro_tightening_pressure": 0.3,
+      "domestic_policy_uncertainty": 0.2,
+      "exporter_tailwind": 0.4,
+      "semiconductor_momentum": 0.7,
+      "consumer_strength": 0.1,
+      "inflation_concern": 0.2,
+      "yen_appreciation_pressure": -0.5,
+      "energy_supply_risk": 0.2,
+      "ai_theme_strength": 0.8,
+      "financial_sector_support": 0
     },
     "dominant_themes": [
-      "ドル円",
-      "米金融政策",
-      "株価指数の調整"
+      "米ハイテク株高の波及",
+      "半導体関連の力強い戻り",
+      "円安進行による輸出関連の支援",
+      "中東情勢の警戒感緩和"
     ],
     "bullish_sectors": [
-      "内需",
-      "公益"
+      "半導体",
+      "電気機器",
+      "ハイテク"
     ],
-    "bearish_sectors": [
-      "ハイテク",
-      "景気敏感"
-    ],
-    "short_rationale": "為替相場や FRB 後継議長候補など米金融政策関連の話題が中心で、方向感の出にくい様子見ムードが強い。指数は反落気味だが地政学リスクはやや薄れ、弱気一辺倒ではない。"
+    "bearish_sectors": [],
+    "short_rationale": "前日の米国市場で半導体・AI関連が上昇した流れを引き継ぎ、東京市場でも半導体関連が相場を牽引し日経平均は大幅続伸となった。中東情勢の緊張緩和も投資家心理を改善させた一方、為替は円安方向に推移し輸出関連企業に追い風となった。全体としてリスクオンムードが強まった。"
   },
   "20250627": {
     "trade_date": "2025-06-27",
-    "market_regime": "まちまち",
-    "overall_bias": 0.06,
-    "confidence": 0.66,
+    "market_regime": "慎重なもみ合い",
+    "overall_bias": 0.1,
+    "confidence": 0.8,
     "dimensions": {
-      "macro_tightening_pressure": 0.28,
-      "domestic_policy_uncertainty": 0.19,
-      "exporter_tailwind": 0.03,
-      "semiconductor_momentum": -0.04,
-      "consumer_strength": 0.12,
-      "inflation_concern": 0.17,
-      "yen_appreciation_pressure": 0.08,
-      "energy_supply_risk": 0.11,
-      "ai_theme_strength": 0.09,
-      "financial_sector_support": 0.14
+      "macro_tightening_pressure": 0.2,
+      "domestic_policy_uncertainty": 0.3,
+      "exporter_tailwind": 0.1,
+      "semiconductor_momentum": 0.2,
+      "consumer_strength": -0.1,
+      "inflation_concern": 0.3,
+      "yen_appreciation_pressure": -0.2,
+      "energy_supply_risk": 0,
+      "ai_theme_strength": 0.1,
+      "financial_sector_support": 0.1
     },
     "dominant_themes": [
-      "為替安定",
-      "国内政策",
-      "規制・司法"
+      "米関税政策の先行き不透明感",
+      "日銀の追加利上げに対する観測",
+      "企業統治と株主総会シーズン",
+      "国内の少子高齢化・インフラ整備"
     ],
     "bullish_sectors": [
-      "金融",
-      "内需"
+      "自動車",
+      "機械",
+      "半導体関連"
     ],
     "bearish_sectors": [
-      "資源関連",
+      "外食",
+      "小売"
+    ],
+    "short_rationale": "米国が導入する相互関税の一時停止期間の延長期待が買い材料となり、東京市場は一時節目の4万円を回復した。一方で、東京区部の消費者物価上昇率の鈍化により日銀の追加利上げ観測が後退したことも、円安ドル高を誘発し株価を下支えした。国内では生活保護減額違法判決や少子高齢化対策などの政策議論が続く中、投資家は慎重な姿勢を崩していない。"
+  },
+  "20250628": {
+    "trade_date": "2025-06-28",
+    "market_regime": "慎重なもみ合い",
+    "overall_bias": 0.05,
+    "confidence": 0.7,
+    "dimensions": {
+      "macro_tightening_pressure": 0.1,
+      "domestic_policy_uncertainty": 0.2,
+      "exporter_tailwind": 0.1,
+      "semiconductor_momentum": 0,
+      "consumer_strength": 0.1,
+      "inflation_concern": 0.2,
+      "yen_appreciation_pressure": 0.1,
+      "energy_supply_risk": 0.3,
+      "ai_theme_strength": 0,
+      "financial_sector_support": 0
+    },
+    "dominant_themes": [
+      "米関税政策を巡る貿易協議",
+      "インフレ警戒感の後退",
+      "中東地政学リスクの継続"
+    ],
+    "bullish_sectors": [
+      "ハイテク",
+      "小売"
+    ],
+    "bearish_sectors": [
+      "エネルギー",
+      "インフラ関連"
+    ],
+    "short_rationale": "前日のNY市場でインフレ懸念後退から主要指数が続伸したことは日本株の追い風となった一方、米国の対カナダ貿易協議打ち切りやイラン情勢を巡る地政学リスクが上値を抑える要因となっている。全体として、材料が散発的であり方向感の乏しい様子見ムードが強い。"
+  },
+  "20250701": {
+    "trade_date": "2025-07-01",
+    "market_regime": "様子見",
+    "overall_bias": 0,
+    "confidence": 0.4,
+    "dimensions": {
+      "macro_tightening_pressure": 0,
+      "domestic_policy_uncertainty": 0.2,
+      "exporter_tailwind": 0,
+      "semiconductor_momentum": 0,
+      "consumer_strength": -0.2,
+      "inflation_concern": 0.1,
+      "yen_appreciation_pressure": 0.3,
+      "energy_supply_risk": 0.1,
+      "ai_theme_strength": 0,
+      "financial_sector_support": 0
+    },
+    "dominant_themes": [
+      "トカラ列島近海での地震多発",
+      "消費者の節約志向と企業景況感の悪化",
+      "為替の円高傾向",
+      "日航機緊急着陸"
+    ],
+    "bullish_sectors": [],
+    "bearish_sectors": [
+      "小売・消費関連",
+      "航空・運輸"
+    ],
+    "short_rationale": "為替の円高進行や消費の冷え込みが意識される一方、トカラ列島での頻発する地震や航空機のトラブルが心理的なノイズとなっており、市場は全体として方向感に欠ける様子見ムードとなっている。"
+  },
+  "20250702": {
+    "trade_date": "2025-07-02",
+    "market_regime": "様子見",
+    "overall_bias": -0.1,
+    "confidence": 0.7,
+    "dimensions": {
+      "macro_tightening_pressure": 0.3,
+      "domestic_policy_uncertainty": 0.5,
+      "exporter_tailwind": -0.4,
+      "semiconductor_momentum": 0,
+      "consumer_strength": 0.1,
+      "inflation_concern": 0.3,
+      "yen_appreciation_pressure": 0.2,
+      "energy_supply_risk": 0.1,
+      "ai_theme_strength": 0,
+      "financial_sector_support": 0
+    },
+    "dominant_themes": [
+      "日銀の追加利上げ判断に関する慎重姿勢",
+      "米関税政策への懸念",
+      "参院選に伴う経済対策の行方"
+    ],
+    "bullish_sectors": [
+      "消費関連"
+    ],
+    "bearish_sectors": [
+      "自動車",
       "輸出関連"
     ],
-    "short_rationale": "為替と海外イベントの過熱感がやや落ち着き、国内政策や司法関連のニュースが中心に移った。市場心理は強弱入り交じるが、前半のリスクオフ局面よりはやや安定方向に戻っている。"
+    "short_rationale": "日銀総裁が追加利上げに慎重な姿勢を示した一方、トランプ米政権による関税政策への警戒感が輸出関連株の重しとなっている。参院選に向けた経済対策への期待はあるものの、全体としては市場の方向感は乏しい。"
+  },
+  "20250703": {
+    "trade_date": "2025-07-03",
+    "market_regime": "参院選公示、為替変動と地政学リスクへの警戒",
+    "overall_bias": -0.2,
+    "confidence": 0.75,
+    "dimensions": {
+      "macro_tightening_pressure": 0.3,
+      "domestic_policy_uncertainty": 0.5,
+      "exporter_tailwind": -0.3,
+      "semiconductor_momentum": 0,
+      "consumer_strength": -0.2,
+      "inflation_concern": 0.4,
+      "yen_appreciation_pressure": 0.4,
+      "energy_supply_risk": 0.2,
+      "ai_theme_strength": 0.1,
+      "financial_sector_support": 0
+    },
+    "dominant_themes": [
+      "第27回参院選公示",
+      "日米貿易交渉の難航",
+      "為替の円高基調",
+      "地政学リスク（ウクライナ情勢）"
+    ],
+    "bullish_sectors": [
+      "防衛関連",
+      "通信インフラ"
+    ],
+    "bearish_sectors": [
+      "自動車",
+      "輸出関連"
+    ],
+    "short_rationale": "参院選公示を受け、与野党の激しい政策論戦がスタートしました。日米貿易交渉の膠着や円高進行への警戒感から市場心理は慎重です。米ロ首脳会談や地政学リスクの再燃も重なり、全体として上値が重い展開を意識した投資家心理となっています。"
+  },
+  "20250704": {
+    "trade_date": "2025-07-04",
+    "market_regime": "リスクオフ寄り、円高進行による輸出関連の重し",
+    "overall_bias": -0.3,
+    "confidence": 0.8,
+    "dimensions": {
+      "macro_tightening_pressure": 0.2,
+      "domestic_policy_uncertainty": 0.4,
+      "exporter_tailwind": -0.5,
+      "semiconductor_momentum": 0.1,
+      "consumer_strength": 0.3,
+      "inflation_concern": 0.2,
+      "yen_appreciation_pressure": 0.6,
+      "energy_supply_risk": 0.3,
+      "ai_theme_strength": 0.2,
+      "financial_sector_support": 0
+    },
+    "dominant_themes": [
+      "為替相場の円高進行",
+      "個人投資家の増加とNISAの普及",
+      "米雇用統計を受けた市場心理の変化"
+    ],
+    "bullish_sectors": [
+      "小売・消費関連",
+      "自動車関連"
+    ],
+    "bearish_sectors": [
+      "輸出関連全般",
+      "機械・電機セクター"
+    ],
+    "short_rationale": "為替相場において円高が進行し、輸出関連株にとって逆風となった。一方で個人の株式保有動向や消費支出のプラス成長など、国内需要の堅調さが市場の底堅さを支える展開。"
+  },
+  "20250705": {
+    "trade_date": "2025-07-05",
+    "market_regime": "地震活動と台風の影響による警戒",
+    "overall_bias": -0.2,
+    "confidence": 0.85,
+    "dimensions": {
+      "macro_tightening_pressure": 0.1,
+      "domestic_policy_uncertainty": 0.3,
+      "exporter_tailwind": -0.1,
+      "semiconductor_momentum": 0,
+      "consumer_strength": 0,
+      "inflation_concern": 0.1,
+      "yen_appreciation_pressure": 0.2,
+      "energy_supply_risk": 0.3,
+      "ai_theme_strength": 0,
+      "financial_sector_support": 0
+    },
+    "dominant_themes": [
+      "トカラ列島近海の活発な地震活動",
+      "台風4号の発生と北上",
+      "参院選序盤の情勢"
+    ],
+    "bullish_sectors": [],
+    "bearish_sectors": [
+      "電力・インフラ",
+      "建設",
+      "観光・旅行"
+    ],
+    "short_rationale": "鹿児島県トカラ列島近海での活発な地震活動と、南シナ海での台風4号発生により、リスク回避的な市場心理が働いている。参院選の序盤情勢による政策不透明感もあり、投資家は慎重な姿勢を強めている。"
+  },
+  "20250706": {
+    "trade_date": "2025-07-06",
+    "market_regime": "様子見",
+    "overall_bias": 0,
+    "confidence": 0.4,
+    "dimensions": {
+      "macro_tightening_pressure": 0.1,
+      "domestic_policy_uncertainty": 0,
+      "exporter_tailwind": 0,
+      "semiconductor_momentum": 0,
+      "consumer_strength": 0,
+      "inflation_concern": 0,
+      "yen_appreciation_pressure": 0,
+      "energy_supply_risk": 0.2,
+      "ai_theme_strength": 0,
+      "financial_sector_support": 0
+    },
+    "dominant_themes": [
+      "トカラ列島近海での群発地震",
+      "米南部テキサス州の洪水災害",
+      "地政学リスク（イラン・イスラエル関連）"
+    ],
+    "bullish_sectors": [],
+    "bearish_sectors": [],
+    "short_rationale": "入力ニュースの大半が自然災害や地震速報などの突発的かつ市場との関連性が薄いトピックで占められており、市場センチメントを方向付けるような経済材料が見当たらないため、市場全体は様子見ムードが強い。"
+  },
+  "20250707": {
+    "trade_date": "2025-07-07",
+    "market_regime": "様子見",
+    "overall_bias": 0,
+    "confidence": 0.6,
+    "dimensions": {
+      "macro_tightening_pressure": 0,
+      "domestic_policy_uncertainty": 0.1,
+      "exporter_tailwind": -0.2,
+      "semiconductor_momentum": 0,
+      "consumer_strength": 0,
+      "inflation_concern": 0.2,
+      "yen_appreciation_pressure": 0.4,
+      "energy_supply_risk": 0.1,
+      "ai_theme_strength": 0,
+      "financial_sector_support": 0
+    },
+    "dominant_themes": [
+      "円高進行による輸出関連への重石",
+      "景気動向指数悪化",
+      "企業不祥事と地政学リスク"
+    ],
+    "bullish_sectors": [],
+    "bearish_sectors": [
+      "輸出関連セクター",
+      "自動車セクター"
+    ],
+    "short_rationale": "為替の円高進行が輸出企業の重石となり、5月の景気動向指数が悪化へ転じたことがセンチメントを冷やした。日産自動車の工場売却検討や一部企業の不祥事など、個別企業の材料も多く、市場は慎重な様子見姿勢が強まっている。"
+  },
+  "20250708": {
+    "trade_date": "2025-07-08",
+    "market_regime": "トランプ米政権による関税懸念を受けたボラティリティ上昇",
+    "overall_bias": -0.4,
+    "confidence": 0.85,
+    "dimensions": {
+      "macro_tightening_pressure": 0.5,
+      "domestic_policy_uncertainty": 0.6,
+      "exporter_tailwind": -0.7,
+      "semiconductor_momentum": -0.3,
+      "consumer_strength": -0.2,
+      "inflation_concern": 0.4,
+      "yen_appreciation_pressure": 0.3,
+      "energy_supply_risk": 0.1,
+      "ai_theme_strength": 0,
+      "financial_sector_support": 0
+    },
+    "dominant_themes": [
+      "米トランプ政権による対日関税引き上げ懸念",
+      "参院選を控えた政治の不透明感",
+      "製造業の輸出環境悪化"
+    ],
+    "bullish_sectors": [
+      "特になし"
+    ],
+    "bearish_sectors": [
+      "自動車関連",
+      "電気機器",
+      "輸出関連"
+    ],
+    "short_rationale": "米国が日本製品への25%関税引き上げを表明したことで、輸出企業を中心に警戒感が広がっています。また、参院選を控えた政治情勢の不透明感や、熱中症患者の急増といったネガティブな材料が市場心理の重石となっています。"
+  },
+  "20250709": {
+    "trade_date": "2025-07-09",
+    "market_regime": "様子見",
+    "overall_bias": 0,
+    "confidence": 0.3,
+    "dimensions": {
+      "macro_tightening_pressure": 0,
+      "domestic_policy_uncertainty": 0,
+      "exporter_tailwind": 0,
+      "semiconductor_momentum": 0,
+      "consumer_strength": 0,
+      "inflation_concern": 0,
+      "yen_appreciation_pressure": 0,
+      "energy_supply_risk": 0,
+      "ai_theme_strength": 0,
+      "financial_sector_support": 0
+    },
+    "dominant_themes": [
+      "日本株市場に関する主要な経済ニュースの欠如",
+      "地震および季節性の話題"
+    ],
+    "bullish_sectors": [],
+    "bearish_sectors": [],
+    "short_rationale": "市場に影響を与える経済ニュースや材料が見当たらず、トカラ列島近海での群発地震や気象情報、スポーツ関連の話題が中心となっている。市場心理を動かす特段の要因が欠如しており、方向感が定まらない一日。"
+  },
+  "20250710": {
+    "trade_date": "2025-07-10",
+    "market_regime": "慎重なもみ合い",
+    "overall_bias": -0.1,
+    "confidence": 0.7,
+    "dimensions": {
+      "macro_tightening_pressure": 0.2,
+      "domestic_policy_uncertainty": 0.4,
+      "exporter_tailwind": -0.3,
+      "semiconductor_momentum": 0.5,
+      "consumer_strength": -0.2,
+      "inflation_concern": 0.3,
+      "yen_appreciation_pressure": 0.3,
+      "energy_supply_risk": 0.1,
+      "ai_theme_strength": 0.6,
+      "financial_sector_support": 0.1
+    },
+    "dominant_themes": [
+      "参院選の政局流動化",
+      "米関税政策への懸念",
+      "半導体市場の拡大",
+      "為替相場の円安進行"
+    ],
+    "bullish_sectors": [
+      "半導体・ハイテク関連",
+      "機械・設備関連"
+    ],
+    "bearish_sectors": [
+      "内需・小売",
+      "輸出関連セクター"
+    ],
+    "short_rationale": "参院選の中盤戦による国内政治の不透明感が意識される中、トランプ米政権の関税政策に対する懸念が輸出企業や投資マインドの重石となっている。一方で、エヌビディアの時価総額更新などAI・半導体分野の勢いは市場の支えとなっており、方向感が定まりにくい展開。"
   }
 }

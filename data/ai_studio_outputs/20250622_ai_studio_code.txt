@@ -1,0 +1,32 @@
+{
+  "trade_date": "2025-06-22",
+  "market_regime": "イベント主導の慎重なもみ合い",
+  "overall_bias": -0.3,
+  "confidence": 0.8,
+  "dimensions": {
+    "macro_tightening_pressure": 0.2,
+    "domestic_policy_uncertainty": 0.5,
+    "exporter_tailwind": -0.4,
+    "semiconductor_momentum": 0,
+    "consumer_strength": -0.2,
+    "inflation_concern": 0.3,
+    "yen_appreciation_pressure": 0.4,
+    "energy_supply_risk": 0.7,
+    "ai_theme_strength": 0,
+    "financial_sector_support": 0
+  },
+  "dominant_themes": [
+    "イラン核施設への米軍攻撃と中東情勢の緊迫化",
+    "東京都議選の結果と国内政治への影響",
+    "東京都議選による与党の苦戦"
+  ],
+  "bullish_sectors": [
+    "防衛関連",
+    "エネルギー関連"
+  ],
+  "bearish_sectors": [
+    "小売・消費関連",
+    "全般的な景気敏感株"
+  ],
+  "short_rationale": "イラン核施設への米軍攻撃に伴う中東情勢の急激な悪化が、エネルギー供給リスクや市場全体の不透明感を高めています。また、東京都議選での自民党の大敗が国内政治の不透明感を強めており、投資家心理は慎重な姿勢に傾いています。"
+}

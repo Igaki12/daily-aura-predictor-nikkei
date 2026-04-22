@@ -1,0 +1,31 @@
+{
+  "trade_date": "2025-06-26",
+  "market_regime": "半導体主導で反発、リスクオン回復",
+  "overall_bias": 0.5,
+  "confidence": 0.8,
+  "dimensions": {
+    "macro_tightening_pressure": 0.3,
+    "domestic_policy_uncertainty": 0.2,
+    "exporter_tailwind": 0.4,
+    "semiconductor_momentum": 0.7,
+    "consumer_strength": 0.1,
+    "inflation_concern": 0.2,
+    "yen_appreciation_pressure": -0.5,
+    "energy_supply_risk": 0.2,
+    "ai_theme_strength": 0.8,
+    "financial_sector_support": 0.0
+  },
+  "dominant_themes": [
+    "米ハイテク株高の波及",
+    "半導体関連の力強い戻り",
+    "円安進行による輸出関連の支援",
+    "中東情勢の警戒感緩和"
+  ],
+  "bullish_sectors": [
+    "半導体",
+    "電気機器",
+    "ハイテク"
+  ],
+  "bearish_sectors": [],
+  "short_rationale": "前日の米国市場で半導体・AI関連が上昇した流れを引き継ぎ、東京市場でも半導体関連が相場を牽引し日経平均は大幅続伸となった。中東情勢の緊張緩和も投資家心理を改善させた一方、為替は円安方向に推移し輸出関連企業に追い風となった。全体としてリスクオンムードが強まった。"
+}

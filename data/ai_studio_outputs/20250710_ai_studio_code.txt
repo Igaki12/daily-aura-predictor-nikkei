@@ -1,0 +1,33 @@
+{
+  "trade_date": "2025-07-10",
+  "market_regime": "慎重なもみ合い",
+  "overall_bias": -0.1,
+  "confidence": 0.7,
+  "dimensions": {
+    "macro_tightening_pressure": 0.2,
+    "domestic_policy_uncertainty": 0.4,
+    "exporter_tailwind": -0.3,
+    "semiconductor_momentum": 0.5,
+    "consumer_strength": -0.2,
+    "inflation_concern": 0.3,
+    "yen_appreciation_pressure": 0.3,
+    "energy_supply_risk": 0.1,
+    "ai_theme_strength": 0.6,
+    "financial_sector_support": 0.1
+  },
+  "dominant_themes": [
+    "参院選の政局流動化",
+    "米関税政策への懸念",
+    "半導体市場の拡大",
+    "為替相場の円安進行"
+  ],
+  "bullish_sectors": [
+    "半導体・ハイテク関連",
+    "機械・設備関連"
+  ],
+  "bearish_sectors": [
+    "内需・小売",
+    "輸出関連セクター"
+  ],
+  "short_rationale": "参院選の中盤戦による国内政治の不透明感が意識される中、トランプ米政権の関税政策に対する懸念が輸出企業や投資マインドの重石となっている。一方で、エヌビディアの時価総額更新などAI・半導体分野の勢いは市場の支えとなっており、方向感が定まりにくい展開。"
+}

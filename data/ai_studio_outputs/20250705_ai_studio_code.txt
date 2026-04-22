@@ -1,0 +1,30 @@
+{
+  "trade_date": "2025-07-05",
+  "market_regime": "地震活動と台風の影響による警戒",
+  "overall_bias": -0.2,
+  "confidence": 0.85,
+  "dimensions": {
+    "macro_tightening_pressure": 0.1,
+    "domestic_policy_uncertainty": 0.3,
+    "exporter_tailwind": -0.1,
+    "semiconductor_momentum": 0.0,
+    "consumer_strength": 0.0,
+    "inflation_concern": 0.1,
+    "yen_appreciation_pressure": 0.2,
+    "energy_supply_risk": 0.3,
+    "ai_theme_strength": 0.0,
+    "financial_sector_support": 0.0
+  },
+  "dominant_themes": [
+    "トカラ列島近海の活発な地震活動",
+    "台風4号の発生と北上",
+    "参院選序盤の情勢"
+  ],
+  "bullish_sectors": [],
+  "bearish_sectors": [
+    "電力・インフラ",
+    "建設",
+    "観光・旅行"
+  ],
+  "short_rationale": "鹿児島県トカラ列島近海での活発な地震活動と、南シナ海での台風4号発生により、リスク回避的な市場心理が働いている。参院選の序盤情勢による政策不透明感もあり、投資家は慎重な姿勢を強めている。"
+}

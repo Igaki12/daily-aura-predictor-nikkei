@@ -24,7 +24,9 @@ import Phase2NewsNetwork from "./components/Phase2NewsNetwork";
 
 const MARKET_LOOKBACK_DAYS = 5;
 const DEFAULT_TICKER = "^N225";
-const DEFAULT_SELECTED_DATE = "20250624";
+const DEFAULT_SELECTED_DATE = "20250701";
+const PREDICTION_TARGET_DATE_IDS = ["20250701", "20250702", "20250703", "20250704"];
+const SIMILARITY_CANDIDATE_DATE_IDS = ["20250623", "20250624", "20250625", "20250626", "20250627"];
 
 const initialPipelineState = {
   dataReady: false,
@@ -128,12 +130,13 @@ function App() {
         const normalizedSentiments = normalizePrecomputedSentiments(rawSentiments);
         const normalizedEntities = normalizePrecomputedEntities(rawEntities);
         const tickers = [...new Set(rows.map((row) => row.ticker))];
-        const initialDateIds = buildAvailableTargetDateIds(
+        const initialDateIds = buildSelectableDateIds(
           byDate,
           normalizedSentiments,
           normalizedEntities,
           rows,
-          tickers[0] || DEFAULT_TICKER
+          tickers[0] || DEFAULT_TICKER,
+          PREDICTION_TARGET_DATE_IDS
         );
 
         if (!active) {
@@ -157,7 +160,8 @@ function App() {
           detail:
             `ニュース: ${records.length}件\n` +
             `追加入力ファイル: ${additionalNewsTexts.length}件\n` +
-            `対象日候補: ${initialDateIds.map(formatDateId).join(", ") || "なし"}\n` +
+            `予測対象日: ${initialDateIds.map(formatDateId).join(", ") || "なし"}\n` +
+            `類似日候補: ${SIMILARITY_CANDIDATE_DATE_IDS.map(formatDateId).join(", ")}\n` +
             `市場データ: ${rows.length}行\n` +
             `事前生成センチメント: ${Object.keys(normalizedSentiments).length}日分\n` +
             `事前生成キーワード: ${Object.keys(normalizedEntities).length}日分`
@@ -207,12 +211,21 @@ function App() {
     .filter((row) => row.ticker === selectedTicker)
     .sort((a, b) => a.trade_date.localeCompare(b.trade_date));
 
-  const availableTargetDateIds = buildAvailableTargetDateIds(
+  const availableTargetDateIds = buildSelectableDateIds(
     newsByDate,
     precomputedSentiments,
     precomputedEntities,
     marketRows,
-    selectedTicker
+    selectedTicker,
+    PREDICTION_TARGET_DATE_IDS
+  );
+  const similarityCandidateDateIds = buildSelectableDateIds(
+    newsByDate,
+    precomputedSentiments,
+    precomputedEntities,
+    marketRows,
+    selectedTicker,
+    SIMILARITY_CANDIDATE_DATE_IDS
   );
   const selectedDate = availableTargetDateIds.includes(pipeline.selectedDate)
     ? pipeline.selectedDate
@@ -229,7 +242,7 @@ function App() {
   const selectedPrecomputedSentiment = precomputedSentiments[selectedDate] || null;
   const selectedPrecomputedEntities = precomputedEntities[selectedDate] || null;
 
-  const candidateDateIds = availableTargetDateIds.filter((dateId) => dateId !== selectedDate);
+  const candidateDateIds = similarityCandidateDateIds.filter((dateId) => dateId !== selectedDate);
 
   const summaryItems = [
     { label: "Data", value: loadState.kind === "ready" ? "準備済み" : loadState.text },
@@ -541,7 +554,7 @@ function App() {
           <h1>事前生成データで翌営業日の相場傾向を追うデモ</h1>
           <p className="hero-text">
             GitHub Pages 向けの静的フロントエンドとして、同梱済みニュース JSONL・市場データ CSV・事前生成結果 JSON を順番に確認しながら、
-            予測表示まで辿るデモ版です。対象日は、入力ニュース・事前生成センチメント・市場データが揃っている営業日から自動で候補化されます。
+            予測表示まで辿るデモ版です。予測対象日は 2025-07-01 から 2025-07-04、類似日候補は 2025-06-23 から 2025-06-27 に固定しています。
           </p>
           <div className="hero-actions">
             <button className="button primary" onClick={() => pdfDialogRef.current?.showModal()}>
@@ -584,7 +597,7 @@ function App() {
 
         <PhaseCard number="Phase 2" title="対象日ニュース選択" badge={phaseStatus.news} locked={!pipeline.dataReady}>
           <p className="phase-text">
-            選択できるのは、入力ニュース・事前生成センチメント・市場データが揃っていて予測まで進められる営業日のみです。選んだ日付のニュース件数、見出し、注目キーワードグラフを確認して次へ進みます。
+            予測対象として選べるのは 2025-07-01 から 2025-07-04 のみです。選んだ日付のニュース件数、見出し、注目キーワードグラフを確認して次へ進みます。
           </p>
           <div className="field-grid">
             <label className="field">
@@ -716,7 +729,7 @@ function App() {
 
         <PhaseCard number="Phase 6" title="類似日計算" badge={phaseStatus.similarity} locked={!pipeline.marketConfirmed}>
           <p className="phase-text">
-            事前生成センチメント、事前生成キーワード、市場系列特徴量を合わせて総合スコアを計算します。比較候補はニュースと市場データが揃う重なり日のみです。
+            事前生成センチメント、事前生成キーワード、市場系列特徴量を合わせて総合スコアを計算します。7月の対象日に対して、比較候補は 2025-06-23 から 2025-06-27 のみを使います。
           </p>
           <div className="field-grid">
             <label className="field">
@@ -846,15 +859,14 @@ function App() {
   );
 }
 
-function buildAvailableTargetDateIds(newsByDate, sentimentsByDate, entitiesByDate, marketRows, ticker) {
+function buildSelectableDateIds(newsByDate, sentimentsByDate, entitiesByDate, marketRows, ticker, allowedDateIds) {
   const tradeDates = [...new Set(
     (marketRows || [])
       .filter((row) => !ticker || row.ticker === ticker)
       .map((row) => row.trade_date)
   )].sort();
 
-  return Object.keys(newsByDate || {})
-    .filter((dateId) => {
+  return allowedDateIds.filter((dateId) => {
       const tradeDate = formatDateId(dateId);
       const currentIndex = tradeDates.indexOf(tradeDate);
       return (
@@ -864,8 +876,7 @@ function buildAvailableTargetDateIds(newsByDate, sentimentsByDate, entitiesByDat
         && currentIndex >= 0
         && currentIndex < tradeDates.length - 1
       );
-    })
-    .sort((a, b) => a.localeCompare(b));
+    });
 }
 
 function normalizePrecomputedSentiments(payload) {

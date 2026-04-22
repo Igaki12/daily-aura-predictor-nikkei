@@ -581,7 +581,7 @@ function App() {
       <main className="pipeline">
         <PhaseCard number="Phase 1" title="データ準備" badge={phaseStatus.preparation}>
           <p className="phase-text">
-            ニュース JSONL、市場データ CSV、事前生成済みの日次センチメント表現と注目キーワード結果を自動で読み込みます。
+            ニュース記事データ、市場データ、事前生成済みの日次センチメント表現と注目キーワード結果を自動で読み込みます。
           </p>
           <div className="inline-actions">
             <button
@@ -619,7 +619,7 @@ function App() {
               <div>
                 <h3>エンティティ共起ネットワーク</h3>
                 <p className="phase-graph-description">
-                  選択した 1 日分のニュースで同時に登場した `named_entities` を結び、出現頻度の高い上位 40 件の関係を簡易表示します。
+                  選択した 1 日分のニュースで同時に登場した 固有表現 を結び、出現頻度の高い上位 40 件の関係を簡易表示します。
                 </p>
               </div>
             </div>
@@ -855,7 +855,7 @@ function App() {
             </form>
           </div>
           <p className="modal-text">
-            <code>Glass_Box_Quant_Nikkei_Architecture.pdf</code> をブラウザ内で表示しています。
+            <code>今回の株価予測モデル説明PDF</code> をブラウザ内で表示しています。
           </p>
           <div className="pdf-viewer-frame">
             <iframe

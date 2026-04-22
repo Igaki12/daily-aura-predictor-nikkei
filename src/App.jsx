@@ -882,14 +882,39 @@ function buildSelectableDateIds(newsByDate, sentimentsByDate, entitiesByDate, ma
 function normalizePrecomputedSentiments(payload) {
   return Object.entries(payload || {}).reduce((accumulator, [dateId, sentiment]) => {
     const normalizedDateId = compactDateId(dateId);
+    const normalizedSource = unwrapSentimentPayload(sentiment);
     const normalized = {
-      ...sentiment,
-      trade_date: sentiment.trade_date || formatDateId(normalizedDateId)
+      ...normalizedSource,
+      trade_date: normalizedSource.trade_date || formatDateId(normalizedDateId)
     };
     validateSentiment(normalized);
     accumulator[normalizedDateId] = normalized;
     return accumulator;
   }, {});
+}
+
+function unwrapSentimentPayload(sentiment) {
+  if (!sentiment || typeof sentiment !== "object") {
+    return {};
+  }
+
+  if ("response" in sentiment && typeof sentiment.response === "string") {
+    try {
+      const parsed = JSON.parse(sentiment.response);
+      if (Array.isArray(parsed)) {
+        return parsed[0] && typeof parsed[0] === "object" ? parsed[0] : {};
+      }
+      return parsed && typeof parsed === "object" ? parsed : {};
+    } catch {
+      return {};
+    }
+  }
+
+  if (Array.isArray(sentiment)) {
+    return sentiment[0] && typeof sentiment[0] === "object" ? sentiment[0] : {};
+  }
+
+  return sentiment;
 }
 
 function normalizePrecomputedEntities(payload) {

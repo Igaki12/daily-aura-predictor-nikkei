@@ -231,6 +231,33 @@ h2 {
   font-weight: 700;
 }
 
+.prediction-trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.prediction-trend.up {
+  color: #4f6851;
+}
+
+.prediction-trend.down {
+  color: #7a4d46;
+}
+
+.prediction-trend.neutral {
+  color: #5f6371;
+}
+
+.prediction-trend-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  font-size: 1.02rem;
+  line-height: 1;
+}
+
 .hero .summary-value {
   color: #ffffff;
 }

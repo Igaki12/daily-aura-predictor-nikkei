@@ -1203,10 +1203,29 @@ function PhaseCard({ number, title, badge, children, locked = false }) {
 }
 
 function Metric({ label, value }) {
+  const isPredictionDirection = label === "予測方向";
+  const trendClassName = value === "上昇"
+    ? "up"
+    : value === "下落"
+      ? "down"
+      : "neutral";
+  const trendIcon = value === "上昇"
+    ? "↗"
+    : value === "下落"
+      ? "↘"
+      : "→";
+
   return (
     <div className="prediction-card">
       <p>{label}</p>
-      <p>{value}</p>
+      {isPredictionDirection ? (
+        <p className={`prediction-trend ${trendClassName}`}>
+          <span className="prediction-trend-icon" aria-hidden="true">{trendIcon}</span>
+          <span>{value}</span>
+        </p>
+      ) : (
+        <p>{value}</p>
+      )}
     </div>
   );
 }

@@ -990,6 +990,8 @@ function buildDailyNewsGraph(newsByDate, dateId) {
 
   const entityCounts = new Map();
   const pairCounts = new Map();
+  const entitySubjectCounts = new Map();
+  const entitySubjectMatterCounts = new Map();
 
   records.forEach((record) => {
     const uniqueEntities = [...new Set(
@@ -997,9 +999,16 @@ function buildDailyNewsGraph(newsByDate, dateId) {
       .map((item) => String(item || "").trim())
       .filter(Boolean)
     )];
+    const normalizedSubjects = ensureArray(record.subject_codes)
+      .map((entry) => normalizeSubjectEntry(entry))
+      .filter((entry) => entry.subject || entry.subjectMatter);
 
     uniqueEntities.forEach((item) => {
       entityCounts.set(item, (entityCounts.get(item) || 0) + 1);
+      normalizedSubjects.forEach((entry) => {
+        incrementNestedCount(entitySubjectCounts, item, entry.subject);
+        incrementNestedCount(entitySubjectMatterCounts, item, entry.subjectMatter);
+      });
     });
 
     for (let index = 0; index < uniqueEntities.length; index += 1) {
@@ -1042,17 +1051,25 @@ function buildDailyNewsGraph(newsByDate, dateId) {
     connectionCounts.set(pair.target, (connectionCounts.get(pair.target) || 0) + 1);
   });
 
-  const nodes = topEntities.map((item) => ({
-    id: `entity:${item.name}`,
-    label: item.name,
-    group: "entity",
-    value: Math.max(12, Math.min(44, 10 + item.count * 1.25)),
-    title:
-      `${item.name}\n` +
-      `出現記事数: ${item.count}\n` +
-      `接続ペア数: ${connectionCounts.get(item.name) || 0}\n` +
-      `対象日記事数: ${records.length}`
-  }));
+  const nodes = topEntities.map((item) => {
+    const dominantSubject = pickTopCountKey(entitySubjectCounts.get(item.name));
+    const dominantSubjectMatter = pickTopCountKey(entitySubjectMatterCounts.get(item.name));
+
+    return {
+      id: `entity:${item.name}`,
+      label: item.name,
+      group: "entity",
+      value: Math.max(12, Math.min(44, 10 + item.count * 1.25)),
+      color: buildEntityColor(dominantSubject, dominantSubjectMatter),
+      title:
+        `${item.name}\n` +
+        `出現記事数: ${item.count}\n` +
+        `接続ペア数: ${connectionCounts.get(item.name) || 0}\n` +
+        `subject: ${dominantSubject || "-"}\n` +
+        `subject_matter: ${dominantSubjectMatter || "-"}\n` +
+        `対象日記事数: ${records.length}`
+    };
+  });
 
   const edges = topPairs.map((pair) => ({
     id: `entity:${pair.source}->entity:${pair.target}`,
@@ -1071,6 +1088,84 @@ function buildDailyNewsGraph(newsByDate, dateId) {
     topEntities,
     topPairs
   };
+}
+
+function normalizeSubjectEntry(entry) {
+  if (!entry || typeof entry !== "object") {
+    return { subject: "", subjectMatter: "" };
+  }
+
+  return {
+    subject: String(entry.subject || "").trim(),
+    subjectMatter: String(entry.subject_matter || "").trim()
+  };
+}
+
+function incrementNestedCount(store, entityName, code) {
+  if (!entityName || !code) {
+    return;
+  }
+
+  if (!store.has(entityName)) {
+    store.set(entityName, new Map());
+  }
+  const bucket = store.get(entityName);
+  bucket.set(code, (bucket.get(code) || 0) + 1);
+}
+
+function pickTopCountKey(counter) {
+  if (!counter || !counter.size) {
+    return "";
+  }
+
+  return [...counter.entries()]
+    .sort((a, b) => {
+      if (b[1] !== a[1]) {
+        return b[1] - a[1];
+      }
+      return a[0].localeCompare(b[0], "ja");
+    })[0]?.[0] || "";
+}
+
+function buildEntityColor(subject, subjectMatter) {
+  const subjectHue = getSubjectHue(subject);
+  const matterOffset = ((hashString(subjectMatter || subject || "default") % 7) - 3) * 5;
+  const hue = (subjectHue + matterOffset + 360) % 360;
+  const saturation = 46 + (hashString(subjectMatter || "matter") % 10);
+  const backgroundLightness = 86 + (hashString(subject || "subject") % 4);
+  const borderLightness = 60 + (hashString(subjectMatter || subject || "border") % 6);
+
+  return {
+    background: `hsl(${hue} ${saturation}% ${backgroundLightness}%)`,
+    border: `hsl(${hue} ${Math.min(saturation + 12, 72)}% ${borderLightness}%)`,
+    highlight: {
+      background: `hsl(${hue} ${Math.min(saturation + 6, 68)}% ${Math.max(backgroundLightness - 4, 80)}%)`,
+      border: `hsl(${hue} ${Math.min(saturation + 14, 76)}% ${Math.max(borderLightness - 6, 50)}%)`
+    }
+  };
+}
+
+function getSubjectHue(subject) {
+  const presetHues = {
+    "03000000": 205,
+    "11000000": 12,
+    "15000000": 132,
+    "16000000": 28,
+    "17000000": 262
+  };
+  if (subject && subject in presetHues) {
+    return presetHues[subject];
+  }
+  return hashString(subject || "subject") % 360;
+}
+
+function hashString(value) {
+  const input = String(value || "");
+  let hash = 0;
+  for (let index = 0; index < input.length; index += 1) {
+    hash = (hash * 31 + input.charCodeAt(index)) % 2147483647;
+  }
+  return hash;
 }
 
 function PhaseCard({ number, title, badge, children, locked = false }) {

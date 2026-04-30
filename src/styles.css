@@ -366,7 +366,7 @@ h2 {
 .pipeline {
   display: grid;
   gap: 18px;
-  padding-right: 148px;
+  padding-right: 74px;
 }
 
 .hero,
@@ -823,7 +823,7 @@ h2 {
   }
 
   .pipeline {
-    padding-right: 78px;
+    padding-right: 39px;
   }
 
   .hero {

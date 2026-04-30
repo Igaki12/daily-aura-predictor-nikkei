@@ -61,7 +61,18 @@ function App() {
     text: "読込中",
     detail: "ニュース・市場データ・事前生成結果を読み込んでいます。"
   });
+  const [activeScrollSection, setActiveScrollSection] = useState("hero");
   const pdfDialogRef = useRef(null);
+  const scrollSections = [
+    { id: "hero", label: "概要", shortLabel: "Top" },
+    { id: "phase-1", label: "Phase 1", shortLabel: "1" },
+    { id: "phase-2", label: "Phase 2", shortLabel: "2" },
+    { id: "phase-3", label: "Phase 3", shortLabel: "3" },
+    { id: "phase-4", label: "Phase 4", shortLabel: "4" },
+    { id: "phase-5", label: "Phase 5", shortLabel: "5" },
+    { id: "phase-6", label: "Phase 6", shortLabel: "6" },
+    { id: "phase-7", label: "Phase 7", shortLabel: "7" }
+  ];
 
   useEffect(() => {
     let active = true;
@@ -203,6 +214,46 @@ function App() {
       localStorage.removeItem(STORAGE_KEYS.prediction);
     }
   }, [prediction]);
+
+  useEffect(() => {
+    function syncActiveScrollSection() {
+      const anchorY = window.innerHeight * 0.28;
+      let nextActive = scrollSections[0].id;
+      let nearestDistance = Number.POSITIVE_INFINITY;
+
+      scrollSections.forEach((section) => {
+        const element = document.getElementById(section.id);
+        if (!element) {
+          return;
+        }
+        const rect = element.getBoundingClientRect();
+        const containsAnchor = rect.top <= anchorY && rect.bottom >= anchorY;
+        const distance = Math.abs(rect.top - anchorY);
+
+        if (containsAnchor) {
+          nextActive = section.id;
+          nearestDistance = -1;
+          return;
+        }
+
+        if (nearestDistance >= 0 && distance < nearestDistance) {
+          nearestDistance = distance;
+          nextActive = section.id;
+        }
+      });
+
+      setActiveScrollSection(nextActive);
+    }
+
+    syncActiveScrollSection();
+    window.addEventListener("scroll", syncActiveScrollSection, { passive: true });
+    window.addEventListener("resize", syncActiveScrollSection);
+
+    return () => {
+      window.removeEventListener("scroll", syncActiveScrollSection);
+      window.removeEventListener("resize", syncActiveScrollSection);
+    };
+  }, []);
 
   const marketRows = marketData.rows || [];
   const tickers = [...new Set(marketRows.map((row) => row.ticker))];
@@ -543,9 +594,21 @@ function App() {
     : `比較候補日: ${candidateDateIds.map(formatDateId).join(", ") || "なし"}\n` +
       `重み: センチメント ${weights.sentiment.toFixed(1)} / 注目キーワード ${weights.entity.toFixed(1)} / 市場 ${weights.market.toFixed(1)}`;
 
+  function scrollToSection(sectionId) {
+    const element = document.getElementById(sectionId);
+    if (!element) {
+      return;
+    }
+    element.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+  }
+
   return (
     <div id="app">
       <header
+        id="hero"
         className="hero"
         style={{ "--hero-image": `url(${heroImageUrl})` }}
       >
@@ -578,8 +641,27 @@ function App() {
         </aside>
       </header>
 
+      <nav className="section-rail" aria-label="ページ内ナビゲーション">
+        <div className="section-rail-track" aria-hidden="true" />
+        <div className="section-rail-items">
+          {scrollSections.map((section) => (
+            <button
+              key={section.id}
+              type="button"
+              className={`section-rail-button${activeScrollSection === section.id ? " active" : ""}`}
+              onClick={() => scrollToSection(section.id)}
+              aria-label={`${section.label} へ移動`}
+              title={section.label}
+            >
+              <span className="section-rail-dot" aria-hidden="true" />
+              <span className="section-rail-text">{section.shortLabel}</span>
+            </button>
+          ))}
+        </div>
+      </nav>
+
       <main className="pipeline">
-        <PhaseCard number="Phase 1" title="データ準備" badge={phaseStatus.preparation}>
+        <PhaseCard sectionId="phase-1" number="Phase 1" title="データ準備" badge={phaseStatus.preparation}>
           <p className="phase-text">
             ニュース記事データ、市場データ、事前生成済みの日次センチメント表現と注目キーワード結果を自動で読み込みます。
           </p>
@@ -595,7 +677,7 @@ function App() {
           <pre className="detail-box">{preparationDetail}</pre>
         </PhaseCard>
 
-        <PhaseCard number="Phase 2" title="対象日ニュース選択" badge={phaseStatus.news} locked={!pipeline.dataReady}>
+        <PhaseCard sectionId="phase-2" number="Phase 2" title="対象日ニュース選択" badge={phaseStatus.news} locked={!pipeline.dataReady}>
           <p className="phase-text">
             予測対象として選べるのは 2025-07-01 から 2025-07-04 のみです。選んだ日付のニュース件数、見出し、上位 40 エンティティの共起ネットワークを確認して次へ進みます。
           </p>
@@ -678,7 +760,7 @@ function App() {
           </div>
         </PhaseCard>
 
-        <PhaseCard number="Phase 3" title="日次センチメント表現表示" badge={phaseStatus.sentiment} locked={!pipeline.targetDateConfirmed}>
+        <PhaseCard sectionId="phase-3" number="Phase 3" title="日次センチメント表現表示" badge={phaseStatus.sentiment} locked={!pipeline.targetDateConfirmed}>
           <p className="phase-text">
             このフェーズではアプリ内生成は行わず、あらかじめ用意した日次センチメント表現を表示します。内容を確認すると次のフェーズが有効になります。
           </p>
@@ -697,7 +779,7 @@ function App() {
           </div>
         </PhaseCard>
 
-        <PhaseCard number="Phase 4" title="注目キーワード表示" badge={phaseStatus.entity} locked={!pipeline.sentimentConfirmed}>
+        <PhaseCard sectionId="phase-4" number="Phase 4" title="注目キーワード表示" badge={phaseStatus.entity} locked={!pipeline.sentimentConfirmed}>
           <p className="phase-text">
             選択日の注目キーワード結果を表示します。既存の事前生成結果に加えて、新しい入力ニュースについても表示できるように反映しています。
           </p>
@@ -716,7 +798,7 @@ function App() {
           </div>
         </PhaseCard>
 
-        <PhaseCard number="Phase 5" title="市場データ確認" badge={phaseStatus.market} locked={!pipeline.entitiesConfirmed}>
+        <PhaseCard sectionId="phase-5" number="Phase 5" title="市場データ確認" badge={phaseStatus.market} locked={!pipeline.entitiesConfirmed}>
           <p className="phase-text">
             市場データも静的ファイルから読み込み済みです。ティッカーを選び、今回の比較に使う市場データ範囲を確認して類似日計算へ進みます。
           </p>
@@ -744,7 +826,7 @@ function App() {
           </div>
         </PhaseCard>
 
-        <PhaseCard number="Phase 6" title="類似日計算" badge={phaseStatus.similarity} locked={!pipeline.marketConfirmed}>
+        <PhaseCard sectionId="phase-6" number="Phase 6" title="類似日計算" badge={phaseStatus.similarity} locked={!pipeline.marketConfirmed}>
           <p className="phase-text">
             事前生成センチメント、事前生成キーワード、市場系列特徴量を合わせて総合スコアを計算します。7月の対象日に対して、比較候補は 2025-06-23 から 2025-06-27 のみを使います。
           </p>
@@ -807,7 +889,7 @@ function App() {
           </div>
         </PhaseCard>
 
-        <PhaseCard number="Phase 7" title="予測出力表示" badge={phaseStatus.output} locked={!pipeline.marketConfirmed}>
+        <PhaseCard sectionId="phase-7" number="Phase 7" title="予測出力表示" badge={phaseStatus.output} locked={!pipeline.marketConfirmed}>
           <p className="phase-text">
             類似日の翌営業日の値動きをその日のデモ予測として表示します。ここでは静的データに基づく比較結果を確認できます。
           </p>
@@ -1186,9 +1268,9 @@ function borderForColor(background) {
   return `#${toHex(red)}${toHex(green)}${toHex(blue)}`;
 }
 
-function PhaseCard({ number, title, badge, children, locked = false }) {
+function PhaseCard({ sectionId, number, title, badge, children, locked = false }) {
   return (
-    <section className={`phase-card${locked ? " locked" : ""}`}>
+    <section id={sectionId} className={`phase-card${locked ? " locked" : ""}`}>
       <div className="phase-head">
         <div>
           <p className="phase-number">{number}</p>

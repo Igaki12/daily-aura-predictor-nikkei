@@ -1,11 +1,11 @@
 :root {
   color-scheme: light;
-  --bg: #f5efe5;
-  --paper: rgba(255, 250, 242, 0.9);
-  --paper-strong: #fffaf2;
+  --bg: #faf8f3;
+  --paper: rgba(255, 252, 248, 0.82);
+  --paper-strong: #fffdf9;
   --ink: #20201e;
-  --muted: #615f56;
-  --line: rgba(58, 46, 24, 0.14);
+  --muted: #58564d;
+  --line: rgba(58, 46, 24, 0.12);
   --accent: #a34224;
   --ok: #2b6a4a;
   --warn: #b17317;
@@ -30,9 +30,9 @@ body {
   font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
   color: var(--ink);
   background:
-    radial-gradient(circle at top right, rgba(201, 112, 55, 0.12), transparent 24%),
-    radial-gradient(circle at top left, rgba(77, 116, 96, 0.1), transparent 20%),
-    linear-gradient(180deg, #06090f 0%, #0b1017 38%, #10161d 100%);
+    radial-gradient(circle at top right, rgba(201, 112, 55, 0.08), transparent 24%),
+    radial-gradient(circle at top left, rgba(77, 116, 96, 0.08), transparent 20%),
+    linear-gradient(180deg, #fcfbf8 0%, #f8f5ef 42%, #f5f1ea 100%);
 }
 
 code,
@@ -80,7 +80,6 @@ code {
   pointer-events: none;
 }
 
-.phase-card,
 .modal-card {
   background: var(--paper);
   backdrop-filter: blur(18px);
@@ -89,7 +88,6 @@ code {
   box-shadow: var(--shadow);
 }
 
-.phase-card,
 .modal-card {
   padding: 22px;
 }
@@ -125,6 +123,17 @@ code {
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.phase-number {
+  display: inline-block;
+  position: relative;
+  z-index: 1;
+  margin-top: -17px;
+  padding: 3px 18px 3px 0;
+  background: var(--bg);
+  border-radius: 999px;
+  line-height: 1.05;
 }
 
 h1,
@@ -168,12 +177,20 @@ h2 {
   color: rgba(247, 246, 243, 0.82);
 }
 
-.hero-actions,
-.inline-actions {
+.hero-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   margin-bottom: 8px;
+}
+
+.inline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 10px;
+  margin-bottom: 8px;
+  padding: 10px 0 6px;
 }
 
 .hero .button.primary {
@@ -262,25 +279,147 @@ h2 {
   color: #ffffff;
 }
 
+.section-rail {
+  position: fixed;
+  top: 50%;
+  right: 18px;
+  transform: translateY(-50%);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.section-rail-track {
+  width: 2px;
+  height: 240px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(163, 66, 36, 0.12), rgba(34, 74, 105, 0.28), rgba(163, 66, 36, 0.12));
+}
+
+.section-rail-items {
+  display: grid;
+  gap: 10px;
+  pointer-events: auto;
+}
+
+.section-rail-button {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  cursor: pointer;
+  color: #8a8579;
+  transition: transform 160ms ease, color 160ms ease;
+}
+
+.section-rail-button:hover {
+  transform: translateX(-2px);
+  color: #6f6757;
+}
+
+.section-rail-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(124, 101, 67, 0.22);
+  border: 1px solid rgba(124, 101, 67, 0.26);
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.72);
+}
+
+.section-rail-text {
+  min-width: 2.1rem;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(58, 46, 24, 0.08);
+  color: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-align: center;
+  box-shadow: 0 12px 24px rgba(70, 47, 21, 0.08);
+}
+
+.section-rail-button.active {
+  color: #224a69;
+}
+
+.section-rail-button.active .section-rail-dot {
+  width: 12px;
+  height: 12px;
+  background: #224a69;
+  border-color: rgba(34, 74, 105, 0.24);
+  box-shadow: 0 0 0 5px rgba(34, 74, 105, 0.12);
+}
+
+.section-rail-button.active .section-rail-text {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(244, 248, 251, 0.94));
+  border-color: rgba(34, 74, 105, 0.14);
+  color: #224a69;
+}
+
 .pipeline {
   display: grid;
   gap: 18px;
+  padding-right: 148px;
+}
+
+.hero,
+.phase-card {
+  scroll-margin-top: 20px;
 }
 
 .phase-card {
+  position: relative;
   width: 100%;
+  padding: 34px 0 12px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.phase-card::before {
+  content: "";
+  position: absolute;
+  top: 18px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: 999px;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(163, 66, 36, 0),
+      rgba(163, 66, 36, 0.54) 10%,
+      rgba(196, 151, 92, 0.42) 28%,
+      rgba(34, 74, 105, 0.5) 50%,
+      rgba(101, 130, 113, 0.38) 72%,
+      rgba(163, 66, 36, 0.42) 90%,
+      rgba(163, 66, 36, 0)
+    );
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.28),
+    0 8px 24px rgba(163, 66, 36, 0.12);
 }
 
 .phase-card.locked {
-  opacity: 0.82;
+  opacity: 0.78;
 }
 
 .phase-head {
+  position: relative;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 12px;
+  margin-bottom: 22px;
 }
 
 .badge {
@@ -404,9 +543,9 @@ h2 {
   white-space: pre-wrap;
   word-break: break-word;
   line-height: 1.5;
-  border: 1px solid var(--line);
+  border: 1px solid rgba(58, 46, 24, 0.08);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.42);
+  background: rgba(255, 255, 255, 0.26);
   padding: 16px;
 }
 
@@ -431,9 +570,9 @@ h2 {
 .phase-graph-panel {
   margin-top: 18px;
   padding: 18px;
-  border: 1px solid var(--line);
+  border: 1px solid rgba(58, 46, 24, 0.08);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.42);
+  background: rgba(255, 255, 255, 0.22);
 }
 
 .phase-graph-head {
@@ -529,17 +668,17 @@ h2 {
 .chip {
   padding: 8px 10px;
   border-radius: 999px;
-  background: rgba(163, 66, 36, 0.09);
+  background: rgba(163, 66, 36, 0.08);
   color: #73311c;
   font-size: 0.86rem;
   font-weight: 700;
 }
 
 .prediction-panel {
-  border: 1px solid var(--line);
+  border: 1px solid rgba(58, 46, 24, 0.08);
   border-radius: 18px;
   padding: 18px;
-  background: rgba(255, 255, 255, 0.52);
+  background: rgba(255, 255, 255, 0.24);
 }
 
 .prediction-panel.empty {
@@ -557,8 +696,8 @@ h2 {
 .candidate-list li {
   padding: 12px 14px;
   border-radius: 14px;
-  border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(58, 46, 24, 0.08);
+  background: rgba(255, 255, 255, 0.24);
 }
 
 .modal {
@@ -683,10 +822,29 @@ h2 {
     width: 100%;
   }
 
+  .pipeline {
+    padding-right: 78px;
+  }
+
   .hero {
     border-radius: 0 0 26px 26px;
     margin-top: 0;
     margin-bottom: 18px;
+  }
+
+  .section-rail {
+    right: 8px;
+    gap: 8px;
+  }
+
+  .section-rail-track {
+    height: 208px;
+  }
+
+  .section-rail-text {
+    min-width: 1.9rem;
+    padding: 6px 8px;
+    font-size: 0.68rem;
   }
 
   .hero-copy,

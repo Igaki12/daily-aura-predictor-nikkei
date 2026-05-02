@@ -377,7 +377,7 @@ h2 {
 .phase-card {
   position: relative;
   width: 100%;
-  padding: 34px 0 12px;
+  padding: 34px 0 60px;
   background: transparent;
   border: 0;
   border-radius: 0;
@@ -855,6 +855,7 @@ h2 {
 
   .phase-card {
     max-width: 100dvw;
+    padding-bottom: 34px;
   }
 
   .modal-pdf {
